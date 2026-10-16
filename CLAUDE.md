@@ -6,7 +6,8 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 
 - **Etapa 1 (pesquisa): aprovada.** Ver `docs/referencias.md`. A síntese da primeira rodada vale para a v1; a segunda rodada, no fim do arquivo, traz as referências brasileiras.
 - **Etapa 2 (design): aprovada.** A direção escolhida é a **Arara do Brasil**, descrita na última seção de `docs/design.md`. O protótipo é `prototipos/arara.html`. Os protótipos museu e álbum ficam só como histórico, mas a grade do museu pode virar a visão "ver em grade".
-- **Próximo passo: Etapa 3** (modelo de dados, stack, fluxo de cadastro, pipeline de fotos e silhueta), terminando no Checkpoint 3.
+- **Etapa 3 (arquitetura): aguardando o Checkpoint 3.** Proposta em `docs/arquitetura.md`: Astro 7 com content collections, Sveltia CMS com token pessoal para cadastro pelo celular, fotos em WebP com fundo removido no celular. As perguntas pendentes estão no fim do arquivo.
+- **Próximo passo:** aprovação do dono no Checkpoint 3; depois, Etapa 4.
 
 ## Decisões já tomadas pelo dono
 
@@ -16,7 +17,7 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 - Lista de desejos como **cabides vazios** com etiqueta "procura-se", dentro da arara da região.
 - O dono achou a primeira versão da arara genérica. Prefere soluções originais, com identidade brasileira, a padrões comuns de catálogo.
 
-## Propostas para validar na Etapa 3
+## Propostas para validar no Checkpoint 3
 
 - Campo `uf` no esquema; a região é derivada da UF.
 - Padrão de silhueta `faixa-peito` (já está no protótipo). Confirmar com o dono que ele respeita a regra da silhueta genérica.
