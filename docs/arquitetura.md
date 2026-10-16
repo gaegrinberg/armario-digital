@@ -311,3 +311,75 @@ jobs:
 - O cache das imagens importa: sem ele, cada camisa nova faz o build reprocessar todas as fotos da coleção. O padrão do Astro guarda o cache em `node_modules/.astro`, que a instalação limpa do CI apaga; por isso o `cacheDir` vai para `.cache/astro` na configuração. As versões das ações (`@v3`, `@v4`) serão conferidas na hora de criar o arquivo.
 - Se a validação falhar, o deploy não acontece e o site continua na versão anterior. O GitHub manda e-mail com o erro.
 - Tempo estimado do cadastro até o site: 1 a 3 minutos, a confirmar na Etapa 4.
+
+---
+
+## 3.3 Fluxo de cadastro
+
+### Opção 1: editar o arquivo direto no GitHub
+
+Pelo navegador do celular: criar a pasta `src/content/camisas/<slug>/`, escrever o `index.md` e subir as fotos.
+
+- **Configuração:** nenhuma.
+- **Fotos:** sobem como estão. Foto de iPhone vem em HEIC, de 2 a 5 MB, formato que só o Safari exibe. O build teria de converter, e o original pesado ficaria no repositório para sempre, contra a restrição 4 do plano.
+- **Celular:** funciona, mal. Teclado do celular troca aspas retas por curvas, coloca maiúscula no começo da linha e não tem tecla de tabulação: três jeitos de quebrar o YAML. Criar uma pasta exige digitar o caminho com barras no nome do arquivo.
+- **O que dá errado:** o erro só aparece no e-mail do build que falhou, minutos depois. A validação (3.1) garante que nada errado vai para o site, mas não evita a ida e volta.
+- **Serve para:** corrigir um campo ou uma vírgula numa camisa que já existe.
+
+### Opção 2: CMS baseado em Git
+
+O CMS é um formulário que lê a configuração das coleções e faz commit no repositório em seu nome. As opções atuais:
+
+| CMS | Situação (out/2026) | Autenticação com GitHub Pages | Fotos | Celular |
+|---|---|---|---|---|
+| **Sveltia CMS** | Ativo, versão 0.245 (15/10/2026), lançamentos quase diários. Ainda 0.x. | Página estática em `/admin/`, servida pelo próprio GitHub Pages. Entrada por **token pessoal do GitHub** (sem servidor) ou por OAuth, que exige um Worker gratuito na Cloudflare. O GitHub ainda não aceita PKCE em aplicações só de navegador, então não há OAuth sem servidor. | Converte HEIC, JPEG e PNG para **WebP no navegador** e reduz para um tamanho máximo antes do commit (opções `transformations`, `max_file_size`). | Suporte a celular é um dos objetivos declarados do projeto. |
+| Decap CMS | Ativo, versão 3.17.1 (14/10/2026). Maduro, sucessor do Netlify CMS. | Página estática em `/admin/`, mas o GitHub exige um servidor OAuth: o da Netlify (conta lá) ou um proxy próprio (Worker na Cloudflare, Lambda na AWS). | Sobe o arquivo original, sem conversão. | Interface pensada para computador. |
+| Pages CMS | Ativo, versão 2.x. | Aplicação hospedada por terceiros em `app.pagescms.org`. Você entra com o GitHub e instala um GitHub App que, pela documentação, pede escrita em conteúdo, administração e Actions do repositório. Hospedar o próprio exige servidor e PostgreSQL. | Sobe para a pasta configurada; não encontrei conversão de formato. | Interface responsiva. |
+| Keystatic | Ativo. | O modo GitHub precisa de rotas de servidor para o painel. Não roda só no GitHub Pages; exigiria hospedar o painel em outro serviço. | | |
+| TinaCMS | Ativo. | Exige o serviço Tina Cloud ou um backend próprio com banco de dados. | | |
+
+Keystatic e TinaCMS ficam fora: os dois pedem um servidor, o que o plano quer evitar. Pages CMS é o mais fácil de começar, mas entrega a um serviço de terceiros permissões amplas sobre o repositório e depende de esse serviço continuar no ar. Decap é o mais estável, mas não resolve as fotos nem o celular, que são os dois pontos do seu caso.
+
+- **Configuração (Sveltia):** dois arquivos (`public/admin/index.html` e `config.yml`) e um token. Meia hora, feita uma vez.
+- **Fotos:** escolhidas da galeria ou tiradas na hora; chegam ao repositório já em WebP e reduzidas.
+- **Celular:** sim, formulário com listas, seletor de cor e de data.
+- **O que dá errado:** o projeto ainda está em 0.x e muda rápido; fixar a versão na URL do script evita que uma atualização quebre o painel sem aviso. O token fica guardado no navegador do celular: se o aparelho for comprometido, quem o tiver consegue escrever neste repositório (só neste, com o token restrito). O token expira e precisa ser renovado.
+
+### Opção 3: script local
+
+Um comando (`npm run nova-camisa`) pergunta os campos no terminal, recebe o caminho das fotos, reduz e converte, opcionalmente remove o fundo (3.4) e escreve a pasta pronta.
+
+- **Configuração:** baixa para mim, média para você (Node instalado; Python se usar remoção de fundo local).
+- **Fotos:** o melhor controle de qualidade das três opções.
+- **Celular:** não. Depende do computador, o que contraria a restrição 5 do plano.
+- **O que dá errado:** pouca coisa; a validação acontece antes do commit.
+- **Serve para:** a carga inicial, se você quiser cadastrar dezenas de camisas de uma vez num fim de semana.
+
+### Comparação
+
+| | Arquivo no GitHub | Sveltia CMS | Script local |
+|---|---|---|---|
+| Esforço inicial | nenhum | baixo | médio |
+| Esforço por camisa | alto | baixo | baixo |
+| Fotos | originais pesados no repositório | WebP reduzido no navegador | WebP reduzido, fundo removido |
+| Celular | precário | sim | não |
+| Erros de digitação | só no build | barrados no formulário e no build | barrados no terminal e no build |
+
+### Recomendação
+
+**Sveltia CMS com token pessoal, para o dia a dia pelo celular, e edição direta no GitHub para correções rápidas.** O script local fica para depois, só se a carga inicial se mostrar trabalhosa pelo celular.
+
+Por que o token pessoal e não o OAuth pela Cloudflare: você é o único editor. O OAuth acrescenta uma conta e um serviço a manter para resolver um problema de quem tem vários editores. Se um dia houver outra pessoa cadastrando, o Worker pode ser acrescentado sem mudar o resto.
+
+O token: "fine-grained", restrito a `gaegrinberg/armario-digital`, permissão só de **Contents: leitura e escrita**, com data de expiração.
+
+Como fica o cadastro de uma camisa no celular:
+
+1. Fotografar frente e costas (guia em 3.4).
+2. Remover o fundo no aplicativo de fotos do celular (3.4).
+3. Abrir `…/admin/`, tocar em "Nova camisa".
+4. Escolher o clube na lista, digitar a temporada, escolher o tipo. As cores já vêm do clube.
+5. Anexar as fotos. Preencher o que quiser do resto.
+6. Salvar. O CMS faz o commit; o site atualiza em poucos minutos.
+
+A validação existe em duas camadas: o formulário barra campo obrigatório vazio e formato errado (temporada, cor); o build barra o resto (clube inexistente, regras entre campos, grafias parecidas). O esquema do Astro é a fonte da verdade; a configuração do CMS repete só o que melhora o formulário.
