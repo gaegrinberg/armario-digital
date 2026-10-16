@@ -1,88 +1,82 @@
 // Código compartilhado pelos três protótipos: dados fictícios, silhueta,
 // ficha da camisa, filtros e alternância de tema.
 
+// Dados fictícios: clubes reais, mas fabricantes, patrocinadores e histórias inventados.
+// Configuração do site: o clube que ganha a arara em destaque.
+const CONFIG = { timeDoCoracao: 'São Paulo FC' };
+
+const SPFC = ['#FFFFFF', '#D7192D', '#111111'];
+
+function camisa(d) {
+  return {
+    equipe: 'Clube', pais: 'Brasil', liga: 'Brasileirão Série A', versao: 'Torcedor',
+    patrocinador: '', tamanho: 'M', nomeNumero: '', autografada: false, conservacao: 'Muito boa',
+    origem: 'Compra', aquisicao: '', padrao: 'liso', status: 'colecao', observacoes: '', numero: null,
+    ...d,
+    decada: 'Anos ' + (d.temporada.startsWith('20') ? d.temporada.slice(0, 3) + '0' : d.temporada.slice(2, 3) + '0')
+  };
+}
+
 const CAMISAS = [
-  {
-    id: 'vila-serra-1993-titular', numero: 1,
-    clube: 'EC Vila Serra', equipe: 'Clube', pais: 'Brasil', liga: 'Brasileirão Série A',
-    temporada: '1993', decada: 'Anos 90', tipo: 'Titular', versao: 'Torcedor',
-    fabricante: 'Trivela', patrocinador: 'Café Morro Alto', tamanho: 'M',
-    nomeNumero: '', autografada: false, conservacao: 'Muito boa',
-    origem: 'Presente', aquisicao: '2008-12-24',
-    cores: ['#1E6B3A', '#FFFFFF'], padrao: 'liso', status: 'colecao',
-    observacoes: 'Presente do meu pai no Natal de 2008. Ele comprou numa feira de antiguidades e jurava que era de jogo. Não é, mas virou a camisa mais importante da coleção.'
-  },
-  {
-    id: 'costa-azul-2004-05-reserva', numero: 2,
-    clube: 'Real Costa Azul', equipe: 'Clube', pais: 'Espanha', liga: 'La Liga',
-    temporada: '2004/05', decada: 'Anos 2000', tipo: 'Reserva', versao: 'Jogador',
-    fabricante: 'Libero', patrocinador: 'Navieras del Sur', tamanho: 'G',
-    nomeNumero: 'MARTÍN 8', autografada: false, conservacao: 'Excelente',
-    origem: 'Troca', aquisicao: '2016-05-10',
-    cores: ['#FFFFFF', '#1B2A4A'], padrao: 'faixa-diagonal', status: 'colecao',
-    observacoes: 'Troquei com um colecionador de Valência por duas camisas repetidas.'
-  },
-  {
-    id: 'nordhafen-1997-98-titular', numero: 3,
-    clube: 'FC Nordhafen', equipe: 'Clube', pais: 'Alemanha', liga: 'Bundesliga',
-    temporada: '1997/98', decada: 'Anos 90', tipo: 'Titular', versao: 'Torcedor',
-    fabricante: 'Rondo', patrocinador: 'Hafenbräu', tamanho: 'GG',
-    nomeNumero: '', autografada: false, conservacao: 'Boa',
-    origem: 'Viagem', aquisicao: '2012-08-03',
-    cores: ['#C8102E', '#FFFFFF'], padrao: 'listras-horizontais', status: 'colecao',
-    observacoes: 'Achei num brechó perto do porto, no último dia da viagem. Custou menos que o almoço.'
-  },
-  {
-    id: 'valtorre-1989-90-terceira', numero: 4,
-    clube: 'AS Valtorre', equipe: 'Clube', pais: 'Itália', liga: 'Serie A',
-    temporada: '1989/90', decada: 'Anos 80', tipo: 'Terceira', versao: 'Torcedor',
-    fabricante: 'Catenaccio', patrocinador: 'Olio Valtorre', tamanho: 'M',
-    nomeNumero: '', autografada: true, conservacao: 'Regular',
-    origem: 'Compra', aquisicao: '2021-03-15',
-    cores: ['#4B2A7B', '#D4A62A'], padrao: 'liso', status: 'colecao',
-    observacoes: 'Assinada pelo camisa 10 da época numa festa do clube. A gola está gasta, mas a assinatura segue nítida.'
-  },
-  {
-    id: 'pampa-2010-11-titular', numero: 5,
-    clube: 'CA Pampa', equipe: 'Clube', pais: 'Argentina', liga: 'Primera División',
-    temporada: '2010/11', decada: 'Anos 2010', tipo: 'Titular', versao: 'Torcedor',
-    fabricante: 'Trivela', patrocinador: 'Banco del Litoral', tamanho: 'M',
-    nomeNumero: 'SOSA 9', autografada: false, conservacao: 'Muito boa',
-    origem: 'Compra', aquisicao: '2011-07-20',
-    cores: ['#7DB9E8', '#FFFFFF'], padrao: 'listras-verticais', status: 'colecao',
-    observacoes: ''
-  },
-  {
-    id: 'uruguai-1995-goleiro', numero: 6,
-    clube: 'Uruguai', equipe: 'Seleção', pais: 'Uruguai', liga: 'CONMEBOL',
-    temporada: '1995', decada: 'Anos 90', tipo: 'Goleiro', versao: 'Jogador',
-    fabricante: 'Libero', patrocinador: '', tamanho: 'G',
-    nomeNumero: '1', autografada: false, conservacao: 'Boa',
-    origem: 'Presente', aquisicao: '2015-10-02',
-    cores: ['#C7D72E', '#1A1A1A'], padrao: 'liso', status: 'colecao',
-    observacoes: 'Dados fictícios. Na versão real, esta seria a história da camisa.'
-  },
-  {
-    id: 'northgate-1985-86-titular', numero: null,
-    clube: 'Northgate Rovers', equipe: 'Clube', pais: 'Inglaterra', liga: 'First Division',
-    temporada: '1985/86', decada: 'Anos 80', tipo: 'Titular', versao: 'Torcedor',
-    fabricante: 'Rondo', patrocinador: 'Northgate Motors', tamanho: 'M',
-    nomeNumero: '', autografada: false, conservacao: '',
-    origem: '', aquisicao: '',
-    cores: ['#1A1A1A', '#FFFFFF'], padrao: 'listras-verticais', status: 'desejo',
-    observacoes: 'A camisa da final de copa que vi numa fita VHS gasta. Procurando em tamanho M.'
-  },
-  {
-    id: 'sporting-mare-2021-22-comemorativa', numero: null,
-    clube: 'Sporting Maré', equipe: 'Clube', pais: 'Portugal', liga: 'Primeira Liga',
-    temporada: '2021/22', decada: 'Anos 2020', tipo: 'Comemorativa', versao: 'Torcedor',
-    fabricante: 'Rondo', patrocinador: 'Conservas Maré', tamanho: '',
-    nomeNumero: '', autografada: false, conservacao: '',
-    origem: '', aquisicao: '',
-    cores: ['#0A6E6E', '#F28C28'], padrao: 'metade', status: 'desejo',
-    observacoes: 'Edição do centenário, só 1.922 unidades.'
-  }
+  camisa({ id: 'sao-paulo-2024-titular', numero: 1, clube: 'São Paulo FC', uf: 'SP', temporada: '2024', tipo: 'Titular',
+    fabricante: 'Trivela', patrocinador: 'Banco Garoa', cores: SPFC, padrao: 'faixa-peito',
+    origem: 'Compra', aquisicao: '2024-02-03',
+    observacoes: 'Comprada na semana do lançamento, na fila da loja do estádio. Estreou no primeiro clássico do ano.' }),
+  camisa({ id: 'sao-paulo-2023-reserva', numero: 2, clube: 'São Paulo FC', uf: 'SP', temporada: '2023', tipo: 'Reserva',
+    versao: 'Jogador', fabricante: 'Trivela', patrocinador: 'Banco Garoa', nomeNumero: 'LUCAS 7',
+    cores: ['#D7192D', '#FFFFFF', '#111111'], padrao: 'listras-verticais', aquisicao: '2023-10-01',
+    observacoes: 'A camisa da campanha da Copa do Brasil. Fiquei três meses procurando no meu tamanho.' }),
+  camisa({ id: 'sao-paulo-2021-terceira', numero: 3, clube: 'São Paulo FC', uf: 'SP', temporada: '2021', tipo: 'Terceira',
+    fabricante: 'Trivela', cores: ['#111111', '#D7192D'], autografada: true, origem: 'Presente', aquisicao: '2021-12-24',
+    observacoes: 'Presente de Natal, autografada pelo elenco num evento de sócios.' }),
+  camisa({ id: 'sao-paulo-2019-goleiro', numero: 4, clube: 'São Paulo FC', uf: 'SP', temporada: '2019', tipo: 'Goleiro',
+    fabricante: 'Rondo', nomeNumero: '1', cores: ['#2B6CD4', '#111111'], conservacao: 'Boa', aquisicao: '2020-01-15' }),
+  camisa({ id: 'sao-paulo-2016-titular', numero: 5, clube: 'São Paulo FC', uf: 'SP', temporada: '2016', tipo: 'Titular',
+    fabricante: 'Rondo', cores: SPFC, padrao: 'faixa-peito', conservacao: 'Boa', origem: 'Troca', aquisicao: '2017-06-10',
+    observacoes: 'A mais antiga da arara. Troquei por uma camisa do Santos com um colega de faculdade.' }),
+  camisa({ id: 'cruzeiro-2022-titular', numero: 6, clube: 'Cruzeiro', uf: 'MG', temporada: '2022', tipo: 'Titular',
+    liga: 'Brasileirão Série B', fabricante: 'Libero', cores: ['#1B3F9C', '#FFFFFF'], origem: 'Viagem', aquisicao: '2022-07-20' }),
+  camisa({ id: 'botafogo-2023-titular', numero: 7, clube: 'Botafogo', uf: 'RJ', temporada: '2023', tipo: 'Titular',
+    fabricante: 'Libero', cores: ['#111111', '#FFFFFF'], padrao: 'listras-verticais', origem: 'Viagem', aquisicao: '2023-04-08',
+    observacoes: 'Comprada no Rio, num camelô na saída do Engenhão.' }),
+  camisa({ id: 'bahia-2021-titular', numero: 8, clube: 'Bahia', uf: 'BA', temporada: '2021', tipo: 'Titular',
+    fabricante: 'Pelada', cores: ['#FFFFFF', '#1E3E8C', '#D2232A'], padrao: 'faixa-peito', origem: 'Viagem', aquisicao: '2022-01-05' }),
+  camisa({ id: 'fortaleza-2023-reserva', numero: 9, clube: 'Fortaleza', uf: 'CE', temporada: '2023', tipo: 'Reserva',
+    fabricante: 'Pelada', cores: ['#D2232A', '#1E3E8C', '#FFFFFF'], padrao: 'listras-horizontais', origem: 'Troca', aquisicao: '2024-03-12' }),
+  camisa({ id: 'paysandu-2022-titular', numero: 10, clube: 'Paysandu', uf: 'PA', temporada: '2022', tipo: 'Titular',
+    liga: 'Brasileirão Série C', fabricante: 'Catenaccio', cores: ['#5BB6E8', '#FFFFFF'], padrao: 'listras-verticais',
+    origem: 'Presente', aquisicao: '2022-11-30', observacoes: 'Trazida de Belém por um amigo paraense que jura que é a camisa mais bonita do Brasil.' }),
+  camisa({ id: 'goias-2020-titular', numero: 11, clube: 'Goiás', uf: 'GO', temporada: '2020', tipo: 'Titular',
+    fabricante: 'Libero', cores: ['#0B6B3A', '#FFFFFF'], conservacao: 'Regular', aquisicao: '2021-02-02' }),
+  camisa({ id: 'internacional-2019-reserva', numero: 12, clube: 'Internacional', uf: 'RS', temporada: '2019', tipo: 'Reserva',
+    fabricante: 'Rondo', cores: ['#FFFFFF', '#C8102E'], aquisicao: '2019-09-14' }),
+  camisa({ id: 'boca-2018-titular', numero: 13, clube: 'Boca Juniors', uf: '', pais: 'Argentina', liga: 'Primera División',
+    temporada: '2018', tipo: 'Titular', fabricante: 'Rondo', cores: ['#0B3D91', '#F2C230'], padrao: 'faixa-peito',
+    origem: 'Viagem', aquisicao: '2018-05-19', observacoes: 'Única gringa da coleção, comprada na viagem a Buenos Aires.' }),
+  camisa({ id: 'sao-paulo-2025-comemorativa', clube: 'São Paulo FC', uf: 'SP', temporada: '2025', tipo: 'Comemorativa',
+    fabricante: 'Trivela', cores: SPFC, padrao: 'faixa-peito', status: 'desejo', conservacao: '', origem: '',
+    observacoes: 'Edição limitada de aniversário. Esgotou em dois dias.' }),
+  camisa({ id: 'sport-2022-titular', clube: 'Sport', uf: 'PE', temporada: '2022', tipo: 'Titular',
+    liga: 'Brasileirão Série B', fabricante: 'Pelada', cores: ['#D2232A', '#111111'], padrao: 'listras-horizontais',
+    status: 'desejo', conservacao: '', origem: '' })
 ];
+
+// Regiões do IBGE e posição de cada UF no mapa de quadradinhos [coluna, linha]
+const REGIOES = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
+const UFS = {
+  RR: ['Norte', 1, 0], AP: ['Norte', 3, 0],
+  AM: ['Norte', 1, 1], PA: ['Norte', 2, 1], MA: ['Nordeste', 3, 1], CE: ['Nordeste', 4, 1], RN: ['Nordeste', 5, 1],
+  AC: ['Norte', 0, 2], RO: ['Norte', 1, 2], TO: ['Norte', 2, 2], PI: ['Nordeste', 3, 2], PE: ['Nordeste', 4, 2], PB: ['Nordeste', 5, 2],
+  MT: ['Centro-Oeste', 1, 3], GO: ['Centro-Oeste', 2, 3], BA: ['Nordeste', 3, 3], SE: ['Nordeste', 4, 3], AL: ['Nordeste', 5, 3],
+  MS: ['Centro-Oeste', 1, 4], DF: ['Centro-Oeste', 2, 4], MG: ['Sudeste', 3, 4], ES: ['Sudeste', 4, 4],
+  PR: ['Sul', 1, 5], SP: ['Sudeste', 2, 5], RJ: ['Sudeste', 3, 5],
+  SC: ['Sul', 1, 6],
+  RS: ['Sul', 1, 7]
+};
+
+function regiao(c) {
+  return c.uf ? UFS[c.uf][0] : 'Gringas';
+}
 
 // ---------- Silhueta ----------
 
@@ -93,12 +87,18 @@ const CONTORNO = 'M70 26 L46 35 L14 72 L36 94 L55 79 L54 180 L146 180 L145 79 L1
 const CORPO = 'M70 26 L46 35 L55 79 L54 180 L146 180 L145 79 L154 35 L130 26';
 const MANGAS = 'M46 35 L14 72 L36 94 L55 79 Z M154 35 L186 72 L164 94 L145 79 Z';
 
-function padraoSvg(padrao, cor) {
+// Com uma terceira cor, as listras alternam entre a cor 2 e a cor 3.
+function padraoSvg(padrao, cor, cor3 = cor) {
+  const alterna = i => (i % 2 ? cor3 : cor);
   switch (padrao) {
     case 'listras-verticais':
-      return [64, 86, 108, 130].map(x => `<rect x="${x}" y="0" width="11" height="200" fill="${cor}"/>`).join('');
+      return [64, 86, 108, 130].map((x, i) => `<rect x="${x}" y="0" width="11" height="200" fill="${alterna(i)}"/>`).join('');
     case 'listras-horizontais':
-      return [52, 84, 116, 148].map(y => `<rect x="0" y="${y}" width="200" height="14" fill="${cor}"/>`).join('');
+      return [52, 84, 116, 148].map((y, i) => `<rect x="0" y="${y}" width="200" height="14" fill="${alterna(i)}"/>`).join('');
+    case 'faixa-peito':
+      return cor3 === cor
+        ? `<rect x="0" y="66" width="200" height="22" fill="${cor}"/>`
+        : `<rect x="0" y="64" width="200" height="14" fill="${cor}"/><rect x="0" y="78" width="200" height="12" fill="${cor3}"/>`;
     case 'faixa-diagonal':
       return `<rect x="-40" y="92" width="280" height="24" fill="${cor}" transform="rotate(42 100 100)"/>`;
     case 'metade':
@@ -110,7 +110,10 @@ function padraoSvg(padrao, cor) {
 
 function silhueta(c, { costas = false, rotulo = true } = {}) {
   const id = 'cam' + (++contadorSvg);
-  const [cor1, cor2 = cor1] = c.cores;
+  const [cor1, cor2 = cor1, cor3 = cor2] = c.cores;
+  // Na faixa no peito as mangas seguem o corpo; nos outros padrões, a cor 2
+  const corManga = c.padrao === 'faixa-peito' ? cor1 : cor2;
+  const corPunho = corManga === cor1 ? cor2 : cor1;
   const gola = costas ? 'Q100 34 70 26' : 'Q100 46 70 26';
   const corpo = `${CORPO} ${gola} Z`;
   const contorno = `${CONTORNO} ${gola} Z`;
@@ -121,9 +124,9 @@ function silhueta(c, { costas = false, rotulo = true } = {}) {
   return `<svg class="silhueta" viewBox="8 18 184 168" ${aria}>
     <defs><clipPath id="${id}"><path d="${corpo}"/></clipPath></defs>
     <path d="${corpo}" fill="${cor1}"/>
-    <g clip-path="url(#${id})">${padraoSvg(c.padrao, cor2)}</g>
-    <path d="${MANGAS}" fill="${cor2}"/>
-    <path d="M14 72 L36 94 M186 72 L164 94" stroke="${cor1}" stroke-width="6"/>
+    <g clip-path="url(#${id})">${padraoSvg(c.padrao, cor2, cor3)}</g>
+    <path d="${MANGAS}" fill="${corManga}"/>
+    <path d="M14 72 L36 94 M186 72 L164 94" stroke="${corPunho}" stroke-width="6"/>
     <path d="M130 26 ${gola}" fill="none" stroke="${cor2}" stroke-width="6"/>
     ${nome}
     <path d="${contorno}" fill="none" stroke="var(--contorno-camisa)" stroke-width="1.5" stroke-linejoin="round"/>
@@ -203,7 +206,7 @@ function titulo(c) {
 // ---------- Ficha da camisa ----------
 
 const CAMPOS_FICHA = [
-  ['Equipe', 'equipe'], ['País', 'pais'], ['Liga', 'liga'], ['Temporada', 'temporada'],
+  ['Equipe', 'equipe'], ['Estado', 'uf'], ['País', 'pais'], ['Liga', 'liga'], ['Temporada', 'temporada'],
   ['Tipo', 'tipo'], ['Versão', 'versao'], ['Fabricante', 'fabricante'],
   ['Patrocinador', 'patrocinador'], ['Tamanho', 'tamanho'], ['Nome e número', 'nomeNumero'],
   ['Autografada', 'autografada'], ['Conservação', 'conservacao'],

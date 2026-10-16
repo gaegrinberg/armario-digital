@@ -124,7 +124,7 @@ Proposta para o esquema (Etapa 3): incluir o campo **padrão** da camisa (liso, 
 ## Verificação dos protótipos
 
 - Testados em 375 px de largura e no computador, em claro e escuro. Nenhum gera rolagem horizontal da página.
-- Contraste dos textos (texto secundário sobre fundo e sobre placa, texto sobre acento) entre 5,3:1 e 16:1 nas seis paletas, todos acima do mínimo AA de 4,5:1.
+- Contraste dos textos (texto secundário sobre fundo e sobre placa, texto sobre acento) entre 5,3:1 e 16:1 nas seis paletas, todos acima do mínimo AA de 4,5:1. Na arara revisada, inclusive os quadradinhos do mapa, o menor é 4,7:1.
 - Para rodar: `python -m http.server 8123 --directory prototipos` e abrir <http://localhost:8123>. Abrir o arquivo direto pelo explorador também funciona na maioria dos navegadores.
 
 ---
@@ -134,3 +134,56 @@ Proposta para o esquema (Etapa 3): incluir o campo **padrão** da camisa (liso, 
 A **A (museu)** é a base mais segura para a tela principal, por respeitar as fotos e ser simples. A **C (arara)** brilha mais como a "visão armário" da Etapa 5 do que como tela principal. A **B (álbum)** tem a melhor ideia isolada: a lista de desejos como figurinhas faltando.
 
 Uma combinação possível: estrutura e tipografia da A, figurinhas faltantes da B na lista de desejos, e a arara da C guardada para a Etapa 5.
+
+---
+
+## Revisão após o Checkpoint 2: Arara do Brasil
+
+Você escolheu a direção C, organizada por região do Brasil e com destaque para o São Paulo FC, mas achou o visual genérico. A revisão parte da segunda rodada de pesquisa (fim de `docs/referencias.md`) e substitui a seção C acima. O protótipo continua em `prototipos/arara.html`.
+
+**Conceito.** Uma arara de loja de bairro brasileira: as camisas penduradas por região, com placas pintadas à mão em cima, etiquetas de papel presas nos cabides e uma arara própria, em destaque, para o time do coração.
+
+### Organização da tela
+
+1. **Cabeçalho** com título, resumo ("14 camisas · 9 estados") e um **mapa de quadradinhos das 27 UFs**. Cada quadrado fica mais forte conforme o número de camisas do estado. Tocar num estado leva à arara da região.
+2. **Uma arara por região**, na ordem de quantidade de camisas (com a coleção atual, o Sudeste vem primeiro). Camisas de clubes e seleções estrangeiros vão para a arara **"Gringas"**, no fim.
+3. **No Sudeste, a arara do coração vem primeiro**: só camisas do São Paulo FC, maiores, sobre um fundo próprio com uma faixa fina nas três cores do clube (só as cores, sem escudo). Depois dela vem "Outros do Sudeste".
+4. **Sem separação por década**, já que quase tudo é da última década. Dentro de cada arara, a ordem é da temporada mais recente para a mais antiga.
+5. **Lista de desejos dentro das araras**: cada camisa desejada aparece como um cabide vazio, com o contorno tracejado e uma etiqueta "procura-se", na arara da região dela. Uma chave liga e desliga os cabides vazios.
+
+### Elementos
+
+| Elemento | Tratamento |
+|---|---|
+| Placa da região | Londrina Solid (fonte paulistana, gratuita), letras grandes, leve inclinação, borda irregular. É o único elemento "decorado". |
+| Cabide | Gancho e ombros em SVG simples, cor de metal. A barra da arara atravessa a linha. |
+| Etiqueta de papel | Retângulo com furo e barbante saindo do cabide, levemente torto (inclinações alternadas). Mostra clube, temporada · tipo e UF. |
+| Balanço | Ao rolar a arara, as camisas balançam proporcionalmente à velocidade e voltam ao repouso. Desligado com "reduzir movimento". |
+| Ficha da camisa | História primeiro. A ficha técnica vem numa **etiqueta costurada** (fundo claro, borda pespontada, letras pequenas em caixa alta), como a etiqueta interna de uma roupa. |
+
+### Paleta
+
+| Papel | Claro | Escuro |
+|---|---|---|
+| Fundo (parede) | `#EDEBE6` | `#121315` |
+| Superfície | `#FFFFFF` | `#1C1E21` |
+| Placa pintada | `#F7F1E1` com letra `#1F1A14` | `#26231E` com letra `#F2EBDD` |
+| Etiqueta de papel | `#FBF8F1` | `#24272B` |
+| Metal (barra e cabide) | `#8C9097` | `#5E636B` |
+| Texto | `#18191B` | `#ECECEA` |
+| Texto secundário | `#55585E` | `#A6A8AC` |
+| Acento | `#A3271B` vermelho de letreiro | `#F08A7E` |
+
+### Mudanças no modelo de dados (para a Etapa 3)
+
+- Campo **`uf`** (sigla do estado) para clubes brasileiros; a região é derivada da UF, não digitada.
+- Configuração do site **`timeDoCoracao`**, que define qual clube ganha a arara em destaque. Assim o destaque não fica escrito no código.
+- Padrão **"faixa no peito"** na silhueta (faixa horizontal com até duas cores). É um padrão genérico, mas com as cores do São Paulo lembra a camisa do clube. Como não leva escudo, patrocínio nem detalhes da camisa real, acho que respeita a regra da silhueta genérica. Se preferir, troco pelo padrão liso.
+
+### Positivos e negativos
+
+- **Positivo:** tem identidade brasileira sem caricatura, combina com o perfil real da coleção e mantém as fotos no centro: a decoração fica nas placas e nas etiquetas.
+- **Positivo:** a lista de desejos vira parte da arara, como a figurinha faltante do álbum.
+- **Negativo:** continua dependendo de **fotos com fundo removido** para ficar bonita. Com fundo, a foto vira um retângulo pendurado. Isso empurra a remoção de fundo para a v1 ou exige fotografar com fundo uniforme (assunto da Etapa 3.4).
+- **Negativo:** ver "todas as camisas de uma vez" fica pior que na grade. Proposta: um botão "ver em grade" que mostra a mesma coleção na grade do museu, para busca e filtros.
+- **Dificuldade:** média. O mapa, o balanço e as etiquetas são CSS e SVG simples, sem biblioteca.

@@ -177,3 +177,88 @@ Ver seção 1. O padrão comum é: escolher a camisa num catálogo e preencher s
 - Recursos sociais (votos, seguidores, mensagens), que pressupõem backend e comunidade.
 - Importar dados ou imagens de catálogos externos (Football Kit Archive, FKApi): esbarra na restrição de imagens próprias e cria dependência de serviço de terceiros.
 - Preço e gasto total no site público (ShirtSociety, Shirt Squad). Se você quiser esses dados, eles ficam fora do build público; proposta na Etapa 3.
+
+---
+
+## Segunda rodada: referências brasileiras e menos óbvias
+
+Feita depois do Checkpoint 2, quando você escolheu a arara mas achou a proposta genérica. Desta vez, em vez de catálogos e museus estrangeiros, a busca foi por cultura visual brasileira e por interfaces de moda com interação física. Também incorpora o perfil real da coleção: quase toda brasileira, quase toda da última década, com o São Paulo FC como núcleo.
+
+### Abridores de letras de Pernambuco
+[Revista Pesquisa FAPESP](https://revistapesquisa.fapesp.br/abridores-de-letras-inserem-sotaque-proprio-no-espaco-publico/), [tese de Fátima Finizola (UFPE)](https://repositorio.ufpe.br/handle/123456789/17371)
+
+- **O que é:** pesquisa iniciada em 2007 sobre os pintores de letreiros à mão em seis cidades de Pernambuco. Rendeu livro (Blucher, 2013), exposição no Sesc e fontes digitais baseadas nessas letras.
+- **Faz bem:** é uma linguagem gráfica brasileira, popular e reconhecível. Placas de comércio pintadas à mão são exatamente o tipo de sinalização que fica em cima de uma arara numa loja de bairro.
+- **Não serve:** copiar o estilo de um pintor específico seria apropriação. Letras muito ornamentadas competem com as camisas.
+- **Adaptar:** **o nome de cada região escrito numa placa pintada**, com fonte de pôster brasileira, leve inclinação e borda irregular. É o único elemento "decorado" da tela.
+
+### Letras de barco do Pará (Letras que Flutuam)
+[O Liberal](https://www.oliberal.com/cultura/letras-de-barcos-e-oficio-dos-abridores-de-letras-sao-reconhecidos-como-patrimonio-imaterial-1.1140110), [Brasil de Fato](https://www.brasildefato.com.br/2024/10/15/belem-tem-primeiro-espaco-de-promocao-e-preservacao-da-tipografia-de-barcos-da-amazonia), [Tipo Aquilo #45](https://tipoaquilo.substack.com/p/tipo-aquilo-45-letras-que-flutuam)
+
+- **O que é:** letras pintadas em embarcações, tradição de cerca de 100 anos reconhecida como patrimônio imaterial do Pará. Belém tem um instituto dedicado a ela.
+- **Faz bem:** mostra que cada região tem sua própria cultura de letreiro.
+- **Não serve:** dar a cada região um estilo de letra "típico" corre o risco de virar caricatura, e é trabalho de design para cada uma.
+- **Adaptar:** fica como ideia para depois: placas regionais com tratamentos diferentes, se um dia fizer sentido. Na v1, uma placa só para todas.
+
+### Fontes brasileiras gratuitas: Londrina e Coiny
+[Marcelo Magalhães na Adobe Fonts](https://fonts.adobe.com/designers/marcelo-magalhaes), [Coiny (OFL)](https://www.serbyte.net/fonts/coiny)
+
+- **O que é:** famílias do designer paulistano Marcelo Magalhães, publicadas no Google Fonts com licença aberta. Londrina (2012) foi feita para pôsteres e tem versões sólida, contorno, sombra e rascunho.
+- **Faz bem:** Londrina Solid tem cara de letra pintada sem imitar ninguém, é gratuita e tem acentos.
+- **Não serve:** Coiny é arredondada e infantil demais para o tom.
+- **Adaptar:** **Londrina Solid nas placas e no título**; texto corrido continua numa sans legível (Archivo).
+
+### Shopping Varal (São Luís)
+[O Imparcial](https://oimparcial.com.br/colunas/antonio-nelson-faria-jornalista/adeus-shopping-varal/)
+
+- **O que é:** ponto de venda de rua onde ambulantes penduravam camisas de clubes locais, nacionais e da Seleção em varais, numa rotatória da cidade. Foi removido por uma obra viária.
+- **Faz bem:** é a vitrine popular brasileira de camisa de futebol: pendurada, à vista, agrupada pela origem do time. Confirma que a arara é a metáfora certa para o seu caso.
+- **Adaptar:** **camisas sempre penduradas, agrupadas por região**, e a **etiqueta de papel presa ao cabide** como o lugar onde vão clube e temporada.
+
+### Exposição "Mantos Campeões" (Alambrado Futebol e Cultura)
+[Lance](https://www.lance.com.br/fora-de-campo/exposicao-reune-camisas-historicas-da-selecao-brasileira-em-sao-paulo.html), [Jornal do Brás](https://jornaldobras.com.br/noticia/131357/ferias-em-sao-paulo-exposicao-mantos-campeoes-que-reune-camisas-originais-do-futebol-mundial-se-encerra-neste-final-de-semana)
+
+- **O que é:** exposição de 2026 em São Paulo, com curadoria do maior colecionador de camisas do mundo (mais de 7 mil peças). Mostrou poucas camisas, escolhidas pela história de cada uma.
+- **Faz bem:** curadoria vence quantidade; cada peça tem um porquê.
+- **Adaptar:** **o destaque para o time do coração** é a sua "exposição permanente": arara própria, camisas maiores, mais espaço.
+
+### Camisa de futebol como objeto de memória
+[TCC de Mateus Alcoforado (UFPE)](https://repositorio.ufpe.br/jspui/bitstream/123456789/65935/1/TCC%20Mateus%20Alcoforado%20de%20Melo.pdf)
+
+- **O que é:** monografia que entrevista colecionadores de Pernambuco e trata a camisa como memória pessoal e coletiva.
+- **Adaptar:** reforça a ficha com a **história antes dos dados**, já aprovada na síntese.
+
+### Memorial de Conquistas do São Paulo FC
+[Gazeta Esportiva](https://www.gazetaesportiva.com/?p=3425407)
+
+- **O que é:** espaço no Morumbi com troféus, camisas históricas, faixas e medalhas, reaberto depois de ficar fechado desde 2019.
+- **Adaptar:** a arara do São Paulo FC funciona como um memorial pessoal: fundo próprio e as três cores do clube numa faixa fina (só as cores, sem escudo).
+
+### Cartograma hexagonal do Brasil
+[InfoDesign, 2018](https://infodesign.emnuvens.com.br/infodesign/article/download/563/360/1800)
+
+- **O que é:** artigo brasileiro que representa os estados como células iguais, mantendo a posição aproximada, para comparar valores sem que o tamanho do Amazonas domine o mapa.
+- **Faz bem:** resume a coleção pelo território de um jeito compacto, e é desenho nosso, sem imagem de terceiros.
+- **Adaptar:** **um mapa de quadradinhos das 27 UFs** no topo, cada quadrado mais forte conforme o número de camisas daquele estado. Tocar num estado leva à arara da região.
+
+### Virtual Fashion Archive (Museum at FIT) e lookbook da Stylepit
+[Virtual Fashion Archive](https://ctrl.yuco.com/project/visual-fashion-archive/), [Stylepit no D&AD](https://www.dandad.org/work/d-ad-awards-archive/stylepit)
+
+- **O que é:** o primeiro deixa girar e animar roupas de acervo em 3D; o segundo faz a roupa se mover conforme a rolagem da página.
+- **Não serve:** 3D exige modelar cada camisa, inviável com fotos de celular.
+- **Adaptar:** **física leve sem 3D**: as camisas balançam no cabide quando a arara é rolada e param sozinhas. Desligado para quem pede menos movimento no sistema.
+
+### Síntese da segunda rodada
+
+Entram no protótipo revisado:
+
+1. Araras por **região do Brasil**, mais uma arara de **"gringas"** para as camisas estrangeiras.
+2. **Arara do coração** para o São Paulo FC, dentro do Sudeste, em destaque.
+3. **Placas pintadas** com Londrina Solid para os nomes das regiões.
+4. **Etiqueta de papel** pendurada no cabide com clube, temporada e UF.
+5. **Cabides vazios** com etiqueta "procura-se" para a lista de desejos, dentro da arara da região (herda a ideia da figurinha faltante).
+6. **Mapa de quadradinhos** das UFs como resumo e atalho.
+7. **Balanço** das camisas ao rolar a arara.
+8. Ficha técnica como **etiqueta costurada** de roupa.
+
+Ficam para depois: placas com letreiro diferente por região; mapa com cidades.

@@ -6,15 +6,19 @@
 <title>Armário Digital · Arara</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Archivo:wght@400;500;600&family=Londrina+Solid:wght@400;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="comum.css">
 <style>
   :root {
-    --fundo: #ECEEF1; --superficie: #FFFFFF; --placa: #DFE3E8;
-    --texto: #14171B; --texto-2: #535B65; --borda: #C9CFD6;
-    --metal: #8E959E;
-    --acento: #1D5BC4; --sobre-acento: #FFFFFF;
+    --fundo: #EDEBE6; --superficie: #FFFFFF; --placa: #F4F1EA;
+    --placa-pintada: #F7F1E1; --tinta: #1F1A14;
+    --etiqueta: #FBF8F1;
+    --texto: #18191B; --texto-2: #55585E; --borda: #D3D0C8;
+    --metal: #8C9097;
+    --acento: #A3271B; --sobre-acento: #FFFFFF;
     --contorno-camisa: rgb(0 0 0 / 0.22);
+    --sombra-camisa: drop-shadow(0 8px 10px rgb(40 30 10 / 0.18));
+    --fonte-placa: 'Londrina Solid', 'Arial Black', sans-serif;
     --fonte-titulo: 'Archivo Narrow', 'Arial Narrow', sans-serif;
     --fonte-texto: 'Archivo', system-ui, sans-serif;
     --raio: 6px; --raio-placa: 6px;
@@ -22,175 +26,379 @@
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --fundo: #0E1013; --superficie: #181C21; --placa: #1E2328;
-      --texto: #E9ECEF; --texto-2: #A1A9B3; --borda: #2E343B;
-      --metal: #5C646E;
-      --acento: #7FA8F0; --sobre-acento: #0B1424;
+      --fundo: #121315; --superficie: #1C1E21; --placa: #202226;
+      --placa-pintada: #26231E; --tinta: #F2EBDD;
+      --etiqueta: #24272B;
+      --texto: #ECECEA; --texto-2: #A6A8AC; --borda: #34373C;
+      --metal: #5E636B;
+      --acento: #F08A7E; --sobre-acento: #1A0D0B;
       --contorno-camisa: rgb(255 255 255 / 0.18);
+      --sombra-camisa: drop-shadow(0 8px 10px rgb(0 0 0 / 0.5));
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --fundo: #0E1013; --superficie: #181C21; --placa: #1E2328;
-    --texto: #E9ECEF; --texto-2: #A1A9B3; --borda: #2E343B;
-    --metal: #5C646E;
-    --acento: #7FA8F0; --sobre-acento: #0B1424;
+    --fundo: #121315; --superficie: #1C1E21; --placa: #202226;
+    --placa-pintada: #26231E; --tinta: #F2EBDD;
+    --etiqueta: #24272B;
+    --texto: #ECECEA; --texto-2: #A6A8AC; --borda: #34373C;
+    --metal: #5E636B;
+    --acento: #F08A7E; --sobre-acento: #1A0D0B;
     --contorno-camisa: rgb(255 255 255 / 0.18);
+    --sombra-camisa: drop-shadow(0 8px 10px rgb(0 0 0 / 0.5));
     color-scheme: dark;
   }
 
   .pagina { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
 
-  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 24px 0 16px; }
-  h1 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: clamp(1.875rem, 7vw, 2.75rem); line-height: 1; text-transform: uppercase; letter-spacing: 0.03em; }
-  .resumo { margin: 6px 0 0; color: var(--texto-2); font-size: 0.9375rem; }
-
-  .segmentos { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--placa); margin-bottom: 12px; }
-  .segmentos button {
-    min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent;
-    color: var(--texto-2); cursor: pointer; font-weight: 500;
+  /* ---------- Topo: título e mapa ---------- */
+  .topo { display: flex; justify-content: space-between; gap: 12px; padding: 24px 0 16px; }
+  .topo-texto { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  h1 {
+    margin: 0; font-family: var(--fonte-placa); font-weight: 900;
+    font-size: clamp(2.125rem, 9vw, 3.5rem); line-height: 0.95; letter-spacing: 0.01em;
   }
-  .segmentos button[aria-selected="true"] { background: var(--superficie); color: var(--texto); box-shadow: 0 1px 2px rgb(0 0 0 / 0.15); }
+  .resumo { margin: 0; color: var(--texto-2); font-size: 0.9375rem; }
+  .acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .acoes a {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px;
+    border: 1px solid var(--borda); border-radius: 999px; color: var(--texto-2);
+    font-size: 0.875rem; text-decoration: none; white-space: nowrap;
+  }
 
-  .controles { display: grid; gap: 12px; }
-  .linha { display: flex; align-items: center; gap: 8px; color: var(--texto-2); flex-wrap: wrap; }
-  .linha .chip { font-size: 0.875rem; min-height: 36px; }
+  .mapa { margin: 0; flex: none; }
+  .mapa-grade {
+    --lado: 26px;
+    display: grid; gap: 3px;
+    grid-template-columns: repeat(6, var(--lado)); grid-template-rows: repeat(8, var(--lado));
+  }
+  @media (min-width: 600px) { .mapa-grade { --lado: 34px; } }
+  .uf {
+    display: grid; place-items: center; padding: 0; border: 0; border-radius: 4px;
+    font: 600 0.75rem/1 var(--fonte-titulo); letter-spacing: 0.02em;
+    background: var(--placa); color: var(--texto-2);
+  }
+  .uf[data-nivel="1"] { background: color-mix(in srgb, var(--acento) 28%, var(--superficie)); color: var(--texto); }
+  .uf[data-nivel="2"] { background: color-mix(in srgb, var(--acento) 55%, var(--superficie)); color: var(--texto); }
+  .uf[data-nivel="3"] { background: var(--acento); color: var(--sobre-acento); }
+  button.uf { cursor: pointer; }
+  button.uf:hover { outline: 2px solid var(--texto); outline-offset: 1px; }
+  .mapa figcaption { margin-top: 6px; color: var(--texto-2); font-size: 0.75rem; text-align: right; }
 
-  .arara { margin-top: 28px; }
-  .arara-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
-  .arara h2 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.375rem; text-transform: uppercase; letter-spacing: 0.06em; }
-  .arara h2 small { margin-left: 8px; font-family: var(--fonte-texto); font-weight: 400; font-size: 0.875rem; letter-spacing: 0; text-transform: none; color: var(--texto-2); }
-  .setas { display: flex; gap: 6px; }
+  /* ---------- Controles ---------- */
+  .controles { display: grid; gap: 8px; }
+  .check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--texto-2); cursor: pointer; }
+  .check input { width: 20px; height: 20px; accent-color: var(--acento); }
+
+  /* ---------- Regiões e placas pintadas ---------- */
+  .regiao { margin-top: 36px; scroll-margin-top: 12px; }
+  .regiao-topo { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 10px; }
+  .placa-pintada {
+    display: inline-block; margin: 0; padding: 4px 16px 6px;
+    background: var(--placa-pintada); color: var(--tinta);
+    font-family: var(--fonte-placa); font-weight: 900; font-size: 1.875rem; line-height: 1; letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border: 2px solid var(--tinta);
+    /* bordas levemente irregulares, como tábua pintada à mão */
+    border-radius: 3px 8px 4px 9px / 9px 4px 8px 3px;
+    box-shadow: 3px 3px 0 var(--tinta);
+    transform: rotate(-1.2deg);
+  }
+  .regiao:nth-of-type(even) .placa-pintada { transform: rotate(0.9deg); }
+  .regiao-conta { margin: 0; color: var(--texto-2); font-size: 0.9375rem; }
+  .regiao-topo .setas { margin-left: auto; }
+
+  .sub-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 2px; }
+  .sub-topo h3 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.125rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  .sub-topo h3 small { margin-left: 8px; font-family: var(--fonte-texto); font-weight: 400; font-size: 0.875rem; color: var(--texto-2); letter-spacing: 0; text-transform: none; }
+  .setas { display: flex; gap: 6px; flex: none; }
+  .setas[hidden] { display: none; }
   .setas button {
     width: 40px; height: 40px; border: 1px solid var(--borda); border-radius: 999px;
     background: var(--superficie); cursor: pointer; font-size: 1.125rem; line-height: 1;
   }
 
+  /* ---------- Arara do coração ---------- */
+  .coracao {
+    position: relative; margin-top: 8px; padding: 18px 16px 6px; margin-inline: -16px;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 0%, color-mix(in srgb, var(--superficie) 70%, #fff8e0), transparent),
+      var(--superficie);
+    border-block: 1px solid var(--borda);
+  }
+  @media (min-width: 760px) { .coracao { margin-inline: 0; border: 1px solid var(--borda); border-radius: 10px; padding: 20px 20px 8px; } }
+  .faixa-clube { display: flex; width: 72px; height: 12px; border: 1px solid var(--borda); border-radius: 2px; overflow: hidden; }
+  .faixa-clube span { flex: 1; }
+  .coracao .sub-topo { margin-top: 10px; }
+  .coracao .sub-topo h3 { font-family: var(--fonte-placa); font-weight: 900; font-size: 1.625rem; letter-spacing: 0.01em; text-transform: none; }
+  .coracao-legenda { margin: 2px 0 0; color: var(--texto-2); font-size: 0.875rem; }
+
+  /* ---------- Trilho, cabides e etiquetas ---------- */
   .trilho {
-    position: relative; display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory;
-    padding: 0 16px 8px; margin: 0 -16px; scrollbar-width: thin;
-    scroll-padding: 0 16px;
+    position: relative; display: flex; gap: 4px; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding: 0 16px 16px; margin: 0 -16px; scroll-padding: 0 16px; scrollbar-width: thin;
   }
-  /* Barra da arara: atravessa a linha na altura dos ganchos */
   .trilho::before {
-    content: ''; position: absolute; left: 0; right: 0; top: 7px; height: 4px; border-radius: 2px;
-    background: var(--metal); min-width: 100%; width: var(--largura-trilho, 100%);
+    content: ''; position: absolute; left: 0; top: 7px; height: 5px; border-radius: 3px;
+    width: max(100%, var(--largura-trilho, 100%));
+    background: linear-gradient(var(--metal), color-mix(in srgb, var(--metal) 60%, #000));
   }
+  .coracao .trilho { margin: 0 -16px; }
 
   .cabide {
-    position: relative; flex: none; width: 44vw; max-width: 220px; padding: 0;
-    border: 0; background: none; cursor: pointer; scroll-snap-align: start; text-align: center;
+    position: relative; flex: none; width: 42vw; max-width: 210px; padding: 0;
+    border: 0; background: none; cursor: pointer; scroll-snap-align: start; text-align: center; color: inherit;
   }
-  @media (min-width: 760px) { .cabide { width: 200px; } }
-  .cabide .gancho { display: block; width: 44%; margin: 0 auto; color: var(--metal); }
-  .cabide .camisa { margin-top: -14%; padding: 0 6%; transform-origin: 50% 0; transition: transform .25s ease; }
-  .cabide:hover .camisa, .cabide:focus-visible .camisa { transform: rotate(-2deg); }
-  .cabide .silhueta { aspect-ratio: 1 / 0.92; filter: drop-shadow(0 6px 8px rgb(0 0 0 / 0.18)); }
-  .cabide h3 { margin: 6px 0 0; font-family: var(--fonte-titulo); font-weight: 600; font-size: 1.0625rem; line-height: 1.2; }
-  .cabide .meta { margin: 0; color: var(--texto-2); font-size: 0.875rem; }
-  @media (prefers-reduced-motion: reduce) { .cabide .camisa { transition: none; } .trilho { scroll-behavior: auto; } }
+  @media (min-width: 760px) { .cabide { width: 190px; } }
+  .grande .cabide { width: 56vw; max-width: 270px; }
+  @media (min-width: 760px) { .grande .cabide { width: 250px; } }
+
+  /* Tudo que está pendurado gira junto, a partir do gancho */
+  .pendurado {
+    --giro: 0deg;
+    transform-origin: 50% 6px; transform: rotate(calc(var(--balanco, 0deg) + var(--giro)));
+    transition: transform 0.9s cubic-bezier(0.25, 1.8, 0.45, 1);
+  }
+  .trilho.rolando .pendurado { transition-duration: 0.25s; }
+  .cabide:hover .pendurado, .cabide:focus-visible .pendurado { --giro: -2.5deg; }
+  .gancho { display: block; width: 44%; margin: 0 auto; color: var(--metal); }
+  .camisa { margin-top: -15%; padding: 0 5%; }
+  .camisa .silhueta { aspect-ratio: 1 / 0.92; filter: var(--sombra-camisa); }
+
+  .etiqueta {
+    position: relative; display: inline-block; min-width: 62%; max-width: 92%; margin-top: 16px; padding: 12px 10px 8px;
+    background: var(--etiqueta); border: 1px solid var(--borda); border-radius: 3px 3px 6px 6px;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    transform: rotate(var(--torto, -2deg)); text-align: left;
+  }
+  .cabide:nth-child(even) .etiqueta { --torto: 2.5deg; }
+  .cabide:nth-child(3n) .etiqueta { --torto: -0.5deg; }
+  /* furo e barbante */
+  .etiqueta::before {
+    content: ''; position: absolute; top: 4px; left: 50%; width: 6px; height: 6px; margin-left: -3px;
+    border-radius: 50%; background: var(--fundo); box-shadow: inset 0 0 0 1px var(--borda);
+  }
+  .etiqueta::after {
+    content: ''; position: absolute; bottom: calc(100% - 7px); left: 50%; width: 1px; height: 22px;
+    background: var(--texto-2);
+  }
+  .etiqueta strong { display: block; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.0625rem; line-height: 1.15; }
+  .etiqueta .meta { display: block; color: var(--texto-2); font-size: 0.875rem; }
+  .etiqueta .uf-tag {
+    position: absolute; top: 6px; right: 6px; font: 600 0.75rem/1 var(--fonte-titulo); color: var(--texto-2);
+  }
+
+  /* Cabide vazio: lista de desejos */
+  .cabide.vazio .camisa .silhueta { opacity: 0.2; filter: grayscale(1); }
+  .cabide.vazio .etiqueta { background: transparent; border-style: dashed; border-color: var(--texto-2); box-shadow: none; }
+  .cabide.vazio .procura { display: block; color: var(--acento); font: 700 0.8125rem/1.2 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* Ficha: dados numa etiqueta costurada */
+  dialog#ficha .ficha-placa { background: var(--placa); }
+  dialog#ficha h2 { font-family: var(--fonte-placa); font-weight: 900; letter-spacing: 0.01em; }
+  dialog#ficha .ficha-campos {
+    position: relative; padding: 16px 16px 14px; border: 0; border-radius: 4px;
+    background: var(--etiqueta);
+    outline: 1px dashed var(--texto-2); outline-offset: -6px;
+    box-shadow: 0 0 0 1px var(--borda);
+    font-family: var(--fonte-titulo); font-size: 0.9375rem;
+  }
+  dialog#ficha .ficha-campos dt { text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8125rem; padding-top: 2px; }
+
+  .nota { margin-top: 48px; color: var(--texto-2); font-size: 0.875rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pendurado { transition: none; transform: none; }
+  }
 </style>
 </head>
 <body>
 <div class="pagina">
-  <header>
-    <div>
+  <header class="topo">
+    <div class="topo-texto">
       <h1>Armário Digital</h1>
       <p class="resumo" id="resumo"></p>
+      <div class="acoes">
+        <button class="botao-tema" id="tema" type="button"></button>
+        <a href="museu.html">Ver em grade</a>
+      </div>
     </div>
-    <button class="botao-tema" id="tema" type="button"></button>
+    <figure class="mapa">
+      <div class="mapa-grade" id="mapa"></div>
+      <figcaption>Camisas por estado</figcaption>
+    </figure>
   </header>
-
-  <div class="segmentos" role="tablist">
-    <button role="tab" aria-selected="true" data-status="colecao">Coleção</button>
-    <button role="tab" aria-selected="false" data-status="desejo">Lista de desejos</button>
-  </div>
 
   <div class="controles">
     <label class="oculto" for="busca">Buscar</label>
-    <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, país, história…">
-    <div class="linha" role="group" aria-label="Agrupar araras por">
-      <span>Araras por</span>
-      <button class="chip" aria-pressed="true" data-agrupar="decada">Década</button>
-      <button class="chip" aria-pressed="false" data-agrupar="pais">País</button>
-      <button class="chip" aria-pressed="false" data-agrupar="tipo">Tipo</button>
-    </div>
+    <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, estado, história…">
+    <label class="check"><input type="checkbox" id="vazios" checked> Mostrar cabides vazios (lista de desejos)</label>
   </div>
 
-  <div id="araras" aria-live="polite"></div>
+  <div id="regioes" aria-live="polite"></div>
+
+  <p class="nota">Protótipo com dados fictícios: clubes reais, mas fabricantes, patrocinadores e histórias inventados.</p>
 </div>
 
 <script src="comum.js"></script>
 <script>
-  const estado = { status: 'colecao', busca: '', agrupar: 'decada' };
+  const estado = { busca: '', vazios: true };
 
   const GANCHO = `<svg class="gancho" viewBox="0 0 100 44" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M50 26 V18 C50 14 58 13 58 7 C58 2 50 0 46 4"/>
     <path d="M50 26 L8 42 H92 Z"/>
   </svg>`;
 
-  // Década em ordem decrescente; outros agrupamentos em ordem alfabética
-  function ordemGrupo(a, b) {
-    if (estado.agrupar === 'decada') return b.localeCompare(a, 'pt', { numeric: true });
-    return a.localeCompare(b, 'pt');
+  const slug = s => normalizar(s).replace(/[^a-z0-9]+/g, '-');
+
+  function cabide(c) {
+    const vazio = c.status === 'desejo';
+    return `
+      <button class="cabide${vazio ? ' vazio' : ''}" type="button" data-id="${c.id}"
+        aria-label="${titulo(c)}, ${c.tipo}${vazio ? ', lista de desejos' : ''}">
+        <div class="pendurado">
+          ${GANCHO}
+          <div class="camisa">${silhueta(c, { rotulo: false })}</div>
+          <span class="etiqueta">
+            ${c.uf ? `<span class="uf-tag">${c.uf}</span>` : ''}
+            ${vazio ? '<span class="procura">Procura-se</span>' : ''}
+            <strong>${c.clube}</strong>
+            <span class="meta">${c.temporada} · ${c.tipo}</span>
+          </span>
+        </div>
+      </button>`;
+  }
+
+  function setas(alvo) {
+    return `<div class="setas">
+      <button type="button" data-rolar="-1" data-alvo="${alvo}" aria-label="Voltar na arara">‹</button>
+      <button type="button" data-rolar="1" data-alvo="${alvo}" aria-label="Avançar na arara">›</button>
+    </div>`;
+  }
+
+  // Sem título, a arara não tem cabeçalho próprio: as setas vão para a linha da placa da região.
+  function arara(itens, { titulo: t, id, grande = false, legenda = '' }) {
+    const tem = itens.filter(c => c.status === 'colecao').length;
+    const conta = t ? `<small>${tem}${itens.length > tem ? ` + ${itens.length - tem} procurada${itens.length - tem > 1 ? 's' : ''}` : ''}</small>` : '';
+    return `
+      ${t ? `<div class="sub-topo">
+        <div>
+          <h3 id="${id}">${t}${grande ? '' : conta}</h3>
+          ${legenda ? `<p class="coracao-legenda">${legenda}</p>` : ''}
+        </div>
+        ${setas(id + '-trilho')}
+      </div>` : ''}
+      <div class="trilho${grande ? ' grande' : ''}" id="${id}-trilho" role="group" aria-labelledby="${t ? id : id + '-placa'}">
+        ${itens.map(cabide).join('')}
+      </div>`;
+  }
+
+  function renderMapa() {
+    const porUf = {};
+    for (const c of CAMISAS) if (c.status === 'colecao' && c.uf) porUf[c.uf] = (porUf[c.uf] || 0) + 1;
+    document.getElementById('mapa').innerHTML = Object.entries(UFS).map(([uf, [reg, col, lin]]) => {
+      const n = porUf[uf] || 0;
+      const nivel = n === 0 ? 0 : n === 1 ? 1 : n < 4 ? 2 : 3;
+      const pos = `grid-column:${col + 1};grid-row:${lin + 1}`;
+      return n
+        ? `<button class="uf" type="button" data-nivel="${nivel}" data-regiao="${reg}" style="${pos}"
+             aria-label="${uf}: ${n} ${n === 1 ? 'camisa' : 'camisas'}. Ir para ${reg}" title="${uf} · ${n}">${uf}</button>`
+        : `<span class="uf" style="${pos}" aria-hidden="true">${uf}</span>`;
+    }).join('');
   }
 
   function render() {
     const colecao = CAMISAS.filter(c => c.status === 'colecao');
-    document.getElementById('resumo').textContent =
-      `${colecao.length} camisas penduradas · ${new Set(colecao.map(c => c.decada)).size} décadas`;
+    const ufs = new Set(colecao.filter(c => c.uf).map(c => c.uf));
+    document.getElementById('resumo').textContent = `${colecao.length} camisas · ${ufs.size} estados`;
 
-    const lista = filtrar(CAMISAS.filter(c => c.status === estado.status), { busca: estado.busca })
-      .sort(ORDENS.temporada);
+    let lista = filtrar(CAMISAS, { busca: estado.busca });
+    if (!estado.vazios) lista = lista.filter(c => c.status === 'colecao');
+    // Mais recente primeiro; cabides vazios no fim de cada arara
+    lista.sort((a, b) => (a.status === 'desejo') - (b.status === 'desejo') || b.temporada.localeCompare(a.temporada));
+
     const grupos = new Map();
     for (const c of lista) {
-      if (!grupos.has(c[estado.agrupar])) grupos.set(c[estado.agrupar], []);
-      grupos.get(c[estado.agrupar]).push(c);
+      const r = regiao(c);
+      if (!grupos.has(r)) grupos.set(r, []);
+      grupos.get(r).push(c);
     }
+    const ordem = [...grupos.entries()].sort((a, b) =>
+      (a[0] === 'Gringas') - (b[0] === 'Gringas') ||
+      b[1].length - a[1].length ||
+      REGIOES.indexOf(a[0]) - REGIOES.indexOf(b[0]));
 
-    document.getElementById('araras').innerHTML = grupos.size ? [...grupos.entries()]
-      .sort((a, b) => ordemGrupo(a[0], b[0]))
-      .map(([nome, itens], i) => `
-        <section class="arara">
-          <div class="arara-topo">
-            <h2 id="arara-${i}">${nome}<small>${itens.length}</small></h2>
-            <div class="setas">
-              <button type="button" data-rolar="-1" aria-label="Anterior em ${nome}">‹</button>
-              <button type="button" data-rolar="1" aria-label="Próxima em ${nome}">›</button>
-            </div>
+    document.getElementById('regioes').innerHTML = ordem.length ? ordem.map(([nome, itens]) => {
+      const coracao = itens.filter(c => c.clube === CONFIG.timeDoCoracao);
+      const outros = itens.filter(c => c.clube !== CONFIG.timeDoCoracao);
+      const tem = itens.filter(c => c.status === 'colecao').length;
+      const procuradas = itens.length - tem;
+      const cores = coracao.length ? coracao[0].cores : [];
+      return `
+        <section class="regiao" id="regiao-${slug(nome)}">
+          <div class="regiao-topo">
+            <h2 class="placa-pintada" id="arara-${slug(nome)}-placa">${nome}</h2>
+            <p class="regiao-conta">${tem} ${tem === 1 ? 'camisa' : 'camisas'}${procuradas ? ` · ${procuradas} procurada${procuradas > 1 ? 's' : ''}` : ''}</p>
+            ${coracao.length ? '' : setas(`arara-${slug(nome)}-trilho`)}
           </div>
-          <div class="trilho" role="group" aria-labelledby="arara-${i}">
-            ${itens.map(c => `
-              <button class="cabide" type="button" data-id="${c.id}" aria-label="${titulo(c)}, ${c.tipo}">
-                ${GANCHO}
-                <div class="camisa">${silhueta(c, { rotulo: false })}</div>
-                <h3>${c.clube}</h3>
-                <p class="meta">${c.temporada} · ${c.tipo}</p>
-              </button>`).join('')}
-          </div>
-        </section>`).join('') : '<p class="vazio">Nenhuma camisa encontrada.</p>';
+          ${coracao.length ? `
+            <div class="coracao">
+              <div class="faixa-clube" aria-hidden="true">${cores.map(cor => `<span style="background:${cor}"></span>`).join('')}</div>
+              ${arara(coracao, {
+                titulo: CONFIG.timeDoCoracao, id: `arara-${slug(nome)}-coracao`, grande: true,
+                legenda: `Arara do coração · ${coracao.filter(c => c.status === 'colecao').length} camisas`
+              })}
+            </div>` : ''}
+          ${outros.length ? arara(outros, {
+            titulo: coracao.length ? `Outros do ${nome}` : '', id: `arara-${slug(nome)}`
+          }) : ''}
+        </section>`;
+    }).join('') : '<p class="vazio">Nenhuma camisa encontrada.</p>';
 
-    // A barra acompanha toda a largura rolável
-    document.querySelectorAll('.trilho').forEach(t => t.style.setProperty('--largura-trilho', t.scrollWidth + 'px'));
+    document.querySelectorAll('.trilho').forEach(t => {
+      t.style.setProperty('--largura-trilho', t.scrollWidth + 'px');
+      balancar(t);
+    });
+    atualizarSetas();
+  }
+
+  // Setas só aparecem quando a arara não cabe na tela
+  function atualizarSetas() {
+    document.querySelectorAll('.setas').forEach(g => {
+      const t = document.getElementById(g.querySelector('[data-alvo]').dataset.alvo);
+      g.hidden = t.scrollWidth <= t.clientWidth + 2;
+    });
+  }
+
+  // Balanço: a velocidade da rolagem inclina as camisas; ao parar, elas voltam com uma leve mola.
+  const semMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+  function balancar(trilho) {
+    let ultimo = trilho.scrollLeft, parado;
+    trilho.addEventListener('scroll', () => {
+      if (semMovimento.matches) return;
+      const delta = trilho.scrollLeft - ultimo;
+      ultimo = trilho.scrollLeft;
+      const graus = Math.max(-9, Math.min(9, -delta * 0.35));
+      trilho.style.setProperty('--balanco', graus + 'deg');
+      trilho.classList.add('rolando');
+      clearTimeout(parado);
+      parado = setTimeout(() => {
+        trilho.classList.remove('rolando');
+        trilho.style.setProperty('--balanco', '0deg');
+      }, 90);
+    }, { passive: true });
   }
 
   document.getElementById('busca').addEventListener('input', e => { estado.busca = e.target.value; render(); });
-  document.querySelector('.linha').addEventListener('click', e => {
-    const chip = e.target.closest('[data-agrupar]'); if (!chip) return;
-    estado.agrupar = chip.dataset.agrupar;
-    document.querySelectorAll('[data-agrupar]').forEach(b => b.setAttribute('aria-pressed', String(b === chip)));
-    render();
+  document.getElementById('vazios').addEventListener('change', e => { estado.vazios = e.target.checked; render(); });
+  document.getElementById('mapa').addEventListener('click', e => {
+    const uf = e.target.closest('[data-regiao]'); if (!uf) return;
+    document.getElementById('regiao-' + slug(uf.dataset.regiao))?.scrollIntoView({ behavior: semMovimento.matches ? 'auto' : 'smooth' });
   });
-  document.querySelector('.segmentos').addEventListener('click', e => {
-    const aba = e.target.closest('[data-status]'); if (!aba) return;
-    estado.status = aba.dataset.status;
-    document.querySelectorAll('.segmentos button').forEach(b => b.setAttribute('aria-selected', String(b === aba)));
-    render();
-  });
-  document.getElementById('araras').addEventListener('click', e => {
+  document.getElementById('regioes').addEventListener('click', e => {
     const seta = e.target.closest('[data-rolar]');
     if (seta) {
-      const trilho = seta.closest('.arara').querySelector('.trilho');
+      const trilho = document.getElementById(seta.dataset.alvo);
       trilho.scrollBy({ left: Number(seta.dataset.rolar) * trilho.clientWidth * 0.8, behavior: 'smooth' });
       return;
     }
@@ -198,7 +406,9 @@
     abrirFicha(CAMISAS.find(c => c.id === item.dataset.id));
   });
 
+  addEventListener('resize', atualizarSetas);
   configurarTema(document.getElementById('tema'));
+  renderMapa();
   render();
 </script>
 </body>
