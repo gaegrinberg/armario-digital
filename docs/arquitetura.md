@@ -296,7 +296,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4          # imagens já otimizadas em builds anteriores
-        with: { path: node_modules/.astro, key: imagens-${{ hashFiles('src/content/camisas/**') }}, restore-keys: imagens- }
+        with: { path: .cache/astro, key: imagens-${{ hashFiles('src/content/camisas/**') }}, restore-keys: imagens- }
       - uses: withastro/action@v3
   deploy:
     needs: build
@@ -308,6 +308,6 @@ jobs:
 ```
 
 - Em Settings → Pages, a fonte passa a ser "GitHub Actions".
-- O cache das imagens importa: sem ele, cada camisa nova faz o build reprocessar todas as fotos da coleção. As versões das ações (`@v3`, `@v4`) serão conferidas na hora de criar o arquivo.
+- O cache das imagens importa: sem ele, cada camisa nova faz o build reprocessar todas as fotos da coleção. O padrão do Astro guarda o cache em `node_modules/.astro`, que a instalação limpa do CI apaga; por isso o `cacheDir` vai para `.cache/astro` na configuração. As versões das ações (`@v3`, `@v4`) serão conferidas na hora de criar o arquivo.
 - Se a validação falhar, o deploy não acontece e o site continua na versão anterior. O GitHub manda e-mail com o erro.
 - Tempo estimado do cadastro até o site: 1 a 3 minutos, a confirmar na Etapa 4.
