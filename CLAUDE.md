@@ -6,8 +6,8 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 
 - **Etapa 1 (pesquisa): aprovada.** Ver `docs/referencias.md`. A síntese da primeira rodada vale para a v1; a segunda rodada, no fim do arquivo, traz as referências brasileiras.
 - **Etapa 2 (design): aprovada.** A direção escolhida é a **Arara do Brasil**, descrita na última seção de `docs/design.md`. O protótipo é `prototipos/arara.html`. Os protótipos museu e álbum ficam só como histórico, mas a grade do museu pode virar a visão "ver em grade".
-- **Etapa 3 (arquitetura): aguardando o Checkpoint 3.** Proposta em `docs/arquitetura.md`: Astro 7 com content collections, Sveltia CMS com token pessoal para cadastro pelo celular, fotos em WebP com fundo removido no celular. As perguntas pendentes estão no fim do arquivo.
-- **Próximo passo:** aprovação do dono no Checkpoint 3; depois, Etapa 4.
+- **Etapa 3 (arquitetura): quase aprovada.** Ver `docs/arquitetura.md`. Aprovados: esquema com cadastro de clubes, Astro 7, Sveltia CMS com token pessoal, WebP. Decisões registradas na seção "Decisões do Checkpoint 3".
+- **Pendente antes da Etapa 4:** teste com fotos reais no cabide (recorte na Galeria do Galaxy A36) e confirmação da silhueta `faixa-peito`.
 
 ## Decisões já tomadas pelo dono
 
@@ -15,13 +15,15 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 - **Uma arara por região do Brasil** (Norte, Nordeste, Centro-Oeste, Sudeste, Sul). Camisas estrangeiras vão para "Gringas".
 - **São Paulo FC** é o time do coração: ganha uma arara própria, em destaque, dentro do Sudeste. Deve vir de uma configuração (`timeDoCoracao`), não ficar fixo no código.
 - Lista de desejos como **cabides vazios** com etiqueta "procura-se", dentro da arara da região.
+- **Seleção brasileira** tem arara própria ("Seleção"), antes das regiões.
+- Fotos: camisa **no cabide, pendurada na parede**, recortada no celular (Samsung Galaxy A36). O cabide real fica na foto.
+- Preço pago não entra. **Valor de mercado** é ideia para a Etapa 5, fora do site público até decisão do dono.
+- Cadastro pelo **Sveltia CMS** com token pessoal; stack **Astro 7**.
 - O dono achou a primeira versão da arara genérica. Prefere soluções originais, com identidade brasileira, a padrões comuns de catálogo.
 
 ## Propostas para validar no Checkpoint 3
 
-- Campo `uf` no esquema; a região é derivada da UF.
 - Padrão de silhueta `faixa-peito` (já está no protótipo). Confirmar com o dono que ele respeita a regra da silhueta genérica.
-- A arara depende de fotos com fundo removido ou fundo uniforme: decidir na Etapa 3.4.
 
 ## Como trabalhar
 

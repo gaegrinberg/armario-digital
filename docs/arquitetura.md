@@ -11,10 +11,10 @@ Etapa 3 do plano. Pesquisa e versões conferidas em outubro de 2026. Nada aqui f
 | Preço e dados privados | Fora deste repositório. O esquema recusa campos desconhecidos, então um `preco` digitado por engano quebra o build. | 3.1 |
 | Stack | Astro 7 com content collections, JavaScript puro no navegador (sem React), deploy por GitHub Actions. | 3.2 |
 | Cadastro | Sveltia CMS em `/admin/`, entrando com um token pessoal do GitHub. Edição direta no GitHub como reserva. | 3.3 |
-| Fotos | Fundo removido no próprio celular, conversão para WebP e redução no navegador pelo CMS, tamanhos finais gerados no build. Originais ficam no celular e num álbum na nuvem. | 3.4 |
+| Fotos | Camisa no cabide, na parede. Fundo removido no próprio celular, conversão para WebP e redução no navegador pelo CMS, tamanhos finais gerados no build. Originais ficam no celular e num álbum na nuvem. | 3.4 |
 | Silhueta | A do protótipo, com manga longa e gerada no build como SVG, sem JavaScript. | 3.5 |
 
-As perguntas que dependem de você estão no fim, em **Para decidir no Checkpoint 3**.
+As decisões tomadas no Checkpoint 3 e o que ainda falta estão no fim, em **Decisões do Checkpoint 3**.
 
 ---
 
@@ -56,7 +56,7 @@ src/
 | `uf` | uma das 27 siglas | só para clubes brasileiros | Obrigatório quando `pais` é Brasil e `equipe` é clube. Proibido nos demais. A região é derivada da UF, nunca digitada. |
 | `cores` | lista de 1 a 3 cores `#RRGGBB` | sim | Cores tradicionais do clube. Servem de padrão para as camisas e para a faixa da arara do coração. |
 
-A seleção brasileira não tem UF. Ela precisa de um lugar nas araras: ver as perguntas no fim.
+A seleção brasileira não tem UF e ganha arara própria, "Seleção", antes das regiões (decidido no Checkpoint 3).
 
 ### Camisa (`src/content/camisas/<slug>/index.md`)
 
@@ -107,7 +107,7 @@ A seleção brasileira não tem UF. Ela precisa de um lugar nas araras: ver as p
 
 | Valor | Como sai |
 |---|---|
-| `regiao` | Da UF do clube, pela tabela do IBGE (já está em `prototipos/comum.js`). Clubes de fora do Brasil vão para "Gringas". |
+| `regiao` | Da UF do clube, pela tabela do IBGE (já está em `prototipos/comum.js`). A seleção brasileira vai para "Seleção"; clubes e seleções de fora do Brasil vão para "Gringas". |
 | título | `{clube} {temporada}` e, abaixo, `{tipo} · {versao}` (como no protótipo). |
 | `corPaleta` | Cada cor é encaixada na cor mais próxima de uma paleta curta de nomes (vermelho, grená, laranja, amarelo, verde, celeste, azul, azul-marinho, roxo, rosa, branco, preto, cinza). A lista final se ajusta quando as camisas reais chegarem. É o que aparece no filtro de cor. |
 | `fundoRemovido` | O build verifica se a foto da frente tem transparência. Com transparência, a camisa fica pendurada direto no cabide. Sem, aparece dentro de uma placa (ver 3.4). |
@@ -430,7 +430,7 @@ Justificativa das metas:
 
 Configuração prevista no Sveltia: `transformations: { raster_image: { format: webp, quality: 85, width: 1600, height: 2000 } }` e `max_file_size` de 15 MB na entrada (a foto do celular, antes de reduzir).
 
-No build, além de redimensionar, o sharp **corta as bordas transparentes** da foto recortada. Assim toda camisa encosta no topo da imagem e pendura na mesma altura do cabide, por mais que o enquadramento varie entre fotos.
+No build, além de redimensionar, o sharp **corta as bordas transparentes** da foto recortada. Assim o gancho do cabide fica sempre no topo da imagem, e toda camisa pendura na mesma altura da barra da arara, por mais que o enquadramento varie entre fotos. Como a foto já traz o cabide real, o site não desenha o cabide em SVG por cima dela; o cabide desenhado fica só para silhuetas e cabides vazios.
 
 ### Remoção de fundo
 
@@ -438,7 +438,7 @@ A direção Arara depende disso: com fundo, a foto vira um retângulo pendurado 
 
 | Onde roda | Como | Qualidade | Peso | Problema |
 |---|---|---|---|---|
-| **No celular, nativo** | iPhone: no app Arquivos, toque longo na foto → Ações rápidas → Remover fundo (salva um PNG recortado); ou toque longo no objeto na foto → Copiar. Android: depende do aparelho (Google Fotos e a Galeria da Samsung têm recorte em modelos recentes). | Boa em objeto contrastado com o fundo. Você vê o resultado antes de subir. | Nenhum para o projeto. | Um passo manual a mais por foto. No Android, a disponibilidade varia. |
+| **No celular, nativo** | iPhone: no app Arquivos, toque longo na foto → Ações rápidas → Remover fundo (salva um PNG recortado); ou toque longo no objeto na foto → Copiar. Samsung (o seu caso): na Galeria, tocar e segurar sobre o objeto e escolher salvar. Outros Android: depende do aparelho. | Boa em objeto contrastado com o fundo. Você vê o resultado antes de subir. | Nenhum para o projeto. | Um passo manual a mais por foto. No Android, a disponibilidade varia. |
 | No computador (script) | `rembg` (licença MIT), com modelos de 176 MB (`u2net`, `isnet-general-use`) a 1 GB (`birefnet-general`). O padrão atual, `bria-rmbg`, tem licença que exige acordo pago para uso comercial. | Muito boa com `isnet-general-use` ou `birefnet-general-lite` (224 MB). | Python e centenas de MB de modelo, na sua máquina. | Exige computador. Bom para lote. |
 | No build (GitHub Actions) | O mesmo `rembg` rodando no CI. | Igual à anterior. | Baixa centenas de MB de modelo e roda em CPU a cada foto nova. | **Ninguém confere o recorte antes de publicar.** Um recorte que come a manga vai direto para o site. Resultado pode mudar quando o modelo for atualizado. |
 | No navegador, dentro do CMS | Bibliotecas como `@imgly/background-removal` (licença AGPL) ou modelos via transformers.js. | Média a boa. | Dezenas de MB baixados no celular a cada sessão; widget customizado no CMS. | Complexidade alta para a v1. |
@@ -451,19 +451,22 @@ A direção Arara depende disso: com fundo, a foto vira um retângulo pendurado 
 
 Por que não automatizar já: o recorte manual no celular é feito com o aparelho na mão, olhando o resultado, e não acrescenta nenhuma dependência ao projeto. Automatizar no build troca esse passo por centenas de MB de modelo e por erros publicados sem revisão. Se o passo manual cansar na carga inicial, o script local com `rembg` resolve o lote sem mudar o resto do pipeline.
 
-Esta recomendação depende do seu celular: no iPhone, a remoção nativa é confiável; no Android, preciso saber o modelo.
+O seu celular é um Galaxy A36. A Galeria da Samsung tem o recorte de objeto (Image Clipper) desde o One UI 5.1, e o A36 saiu com versão mais nova; não achei confirmação específica para o modelo, então isso entra no teste com fotos reais. O recorte é salvo como PNG com fundo transparente, e o CMS converte para WebP mantendo a transparência.
 
 ### Como fotografar
 
-O objetivo é que todas as fotos pareçam da mesma sessão e que o recorte automático do celular funcione de primeira.
+Revisado depois do Checkpoint 3: você prefere fotografar a camisa num cabide, pendurada na parede. A posição muda; os cuidados com fundo e luz continuam. Falta um teste com fotos reais (ver "Decisões do Checkpoint 3").
 
-- **Posição:** camisa estendida numa superfície plana (cama, chão), fotografada de cima. Sem cabide real: o site desenha o cabide, e um cabide na foto apareceria duplicado. Mangas levemente abertas para baixo, como na silhueta; gola no alto, centralizada.
-- **Fundo:** liso, sem estampa e com **contraste** com a camisa: lençol ou cartolina cinza-médio serve para quase tudo. Camisa branca em fundo branco e camisa preta em fundo preto confundem o recorte.
-- **Luz:** perto de uma janela, de dia, sem sol direto. Sem flash. Evitar sombra do próprio celular sobre a camisa (fotografar com a janela de lado, não atrás de você).
-- **Celular:** paralelo à camisa, tela virada para baixo, à altura suficiente para a camisa ocupar uns 80% do quadro com margem nos quatro lados. Use a lente 2x, se tiver, para reduzir a distorção das bordas. Sem modo retrato, sem filtro.
+O objetivo é que todas as fotos pareçam da mesma sessão e que o recorte do celular funcione de primeira.
+
+- **Cabide:** sempre **o mesmo cabide**, de preferência fino e de cor neutra. Ele fica na foto recortada e passa a ser o cabide da arara para aquela camisa; trocar de cabide entre fotos deixa a arara desigual.
+- **Posição:** camisa pendurada num prego ou gancho, afastada uns 20 cm da parede se possível (menos sombra atrás). Ombros alinhados no cabide, gola centralizada, mangas caindo soltas.
+- **Fundo:** parede lisa, com **contraste** com a camisa. A parede branca serve para camisas coloridas e escuras. Para camisas brancas ou muito claras, que são a maioria das do São Paulo, pendure um lençol ou tecido cinza-médio ou escuro atrás. Camisa branca em parede branca é o caso em que o recorte mais falha.
+- **Luz:** perto de uma janela, de dia, com a luz vindo de lado. Sem sol direto e sem flash, que marcam a sombra da camisa na parede.
+- **Celular:** na altura do peito da camisa, reto em relação à parede (sem inclinar para cima ou para baixo), na vertical. A camisa ocupa uns 80% do quadro, com margem nos quatro lados, cabide inteiro na foto. Sem modo retrato e sem filtro.
 - **Preparação:** esticar as dobras com a mão; passar se a camisa estiver muito amassada (sem ferro sobre estampa e número).
-- **Ângulos:** sempre **frente** e **costas**, na mesma posição (virar a camisa no lugar). Detalhes opcionais, de perto: escudo, etiqueta interna (tamanho e código), patches, gola, nome e número, autógrafo.
-- **Depois:** remover o fundo da frente e das costas; os detalhes podem ficar com fundo (aparecem na ficha, não na arara).
+- **Ângulos:** sempre **frente** e **costas**, girando a camisa no próprio cabide, sem mexer no celular. Detalhes opcionais, de perto: escudo, etiqueta interna (tamanho e código), patches, gola, nome e número, autógrafo.
+- **Depois:** recortar a frente e as costas na Galeria do Samsung (tocar e segurar sobre a camisa e escolher a opção de salvar). Os detalhes podem ficar com fundo: aparecem na ficha, não na arara.
 
 ---
 
@@ -507,15 +510,29 @@ Com as cores do São Paulo, a faixa no peito lembra a camisa do clube. Minha lei
 
 ---
 
-## Para decidir no Checkpoint 3
+## Decisões do Checkpoint 3
 
-1. **Esquema (3.1).** Aprovar os campos, as listas fechadas e a escala de conservação. Em especial: o cadastro de clubes separado da camisa, e `fabricante`/`liga` como texto livre com checagem de grafia.
-2. **Seleção brasileira.** Ela não tem UF. Opções: uma arara própria "Seleção", antes das regiões; ou junto do Sudeste (sede da CBF), o que me parece forçado. Recomendo a arara própria, se você tiver camisas da Seleção.
-3. **Preço.** Você quer registrar preço ou valor? Se sim, planilha (opção A) ou repositório privado (opção B).
-4. **Cadastro (3.3).** Aprovar Sveltia CMS com token pessoal. O ponto fraco é a versão 0.x; a alternativa estável é o Decap, que perde o celular e a conversão das fotos.
-5. **Celular.** iPhone ou Android, e qual modelo? Define se a remoção de fundo nativa resolve.
-6. **Fotos (3.4).** Aprovar WebP sem AVIF na v1, as metas de tamanho e a posição "estendida, de cima".
-7. **Silhueta (3.5).** Confirmar que a `faixa-peito` respeita a regra da silhueta genérica.
+| # | Tema | Decisão |
+|---|---|---|
+| 1 | Esquema (3.1) | Aprovado, com o cadastro de clubes separado. |
+| 2 | Seleção brasileira | Arara própria "Seleção", antes das regiões. O clube da seleção tem `equipe: selecao`, `pais: Brasil` e não tem UF; a região derivada passa a ser "Seleção". |
+| 3 | Preço | Não entra agora: você não lembra os preços pagos. Ideia para depois: **valor atual de mercado** (ver abaixo). |
+| 4 | Cadastro (3.3) | Sveltia CMS com token pessoal, aprovado. |
+| 5 | Celular | Samsung Galaxy A36. Recorte pela Galeria da Samsung. |
+| 6 | Fotos (3.4) | WebP e metas de tamanho aprovados. Posição muda: **camisa no cabide, na parede**, em vez de estendida. Guia revisado acima. |
+| 7 | Silhueta (3.5) | Pendente: a pergunta foi reformulada. |
+
+### Valor de mercado (para a Etapa 5)
+
+Registrado como ideia, sem implementação. Pontos a resolver antes de adotar:
+
+- **Fonte do valor.** Ou você estima à mão (consultando anúncios), ou um script busca anúncios em sites de venda. A busca automática é frágil (os sites mudam e costumam proibir coleta nos termos de uso) e mistura réplicas, tamanhos e estados diferentes. Estimativa manual com data ("R$ 300 em out/2026") é mais confiável e não envelhece em silêncio.
+- **Exposição.** Mesmo valor de mercado, se publicado, mostra quanto a coleção vale e que ela está na sua casa. O plano já pede que valor estimado não vá para o site público sem decisão sua. Se o objetivo for só controle pessoal, vale a mesma regra do preço: fora deste repositório (opção A ou B da seção 3.1).
+
+### Pendências antes da Etapa 4
+
+1. **Teste de fotos no cabide.** Fotografar três camisas seguindo o guia (uma branca do São Paulo, uma escura e uma colorida), recortar na Galeria do A36 e me mandar os recortes. Com eles verifico: se o recorte pega o cabide inteiro e as mangas, como fica a camisa branca, quanto pesam as versões geradas, e se o cabide real convive bem com o cabide desenhado das silhuetas na mesma arara.
+2. **Silhueta `faixa-peito`.** Confirmar se ela pode ficar (pergunta reformulada na conversa do checkpoint).
 
 ---
 
