@@ -242,3 +242,72 @@ A camisa da campanha da Copa do Brasil. Fiquei três meses procurando no meu tam
 ```
 
 (Dados fictícios, como nos protótipos.)
+
+---
+
+## 3.2 Stack
+
+### Comparação
+
+| Critério | **Astro 7** | Eleventy 3 | Hugo | Sem gerador (HTML + script Node) |
+|---|---|---|---|---|
+| Validação de esquema | Nativa: content collections com Zod, erro com arquivo e campo. Referência entre coleções (`reference('clubes')`) e validação de imagem (`image()`) prontas. | Não tem. Precisa ligar Zod à mão no carregamento dos dados. | Não tem. Checagens viram condicionais nos templates, com mensagens ruins. | Zod à mão, como no Eleventy. |
+| Otimização de imagem | Nativa (`<Image>`/`<Picture>` com sharp), com cache entre builds. | Plugin oficial `@11ty/eleventy-img` (sharp), bom. | Nativa e rápida, em Go. | sharp chamado por um script nosso. |
+| Templates | Componentes `.astro`: HTML com um bloco de código no topo. Próximo dos protótipos. | Vários (Nunjucks, Liquid, WebC, JS). Flexível, mas cada projeto escolhe um. | Templates Go, sintaxe mais difícil de ler e editar. | Template strings em JS, como nos protótipos. |
+| JavaScript no navegador | Zero por padrão; scripts puros quando precisar (filtros, balanço). | Zero; scripts à parte. | Zero; scripts à parte. | Zero; scripts à parte. |
+| Dependências | Uma direta (`astro`), mas várias centenas de pacotes indiretos no npm. | Menos pacotes indiretos que o Astro. | Um binário, sem npm. | Mínimas (sharp, zod, um parser de YAML/Markdown). |
+| Manutenção | Versão principal nova por ano (6 no início de 2026, 7 hoje); atualizar exige ler guia de migração. | Mudanças lentas e compatíveis. | Estável, binário fixo no workflow. | Tudo é nosso: roteamento, servidor local, recarga ao vivo. |
+| CMS (3.3) | Sveltia/Decap leem e escrevem Markdown com frontmatter em pastas, que é o formato das content collections. | Idem. | Idem. | Idem. |
+
+Versões conferidas em outubro de 2026: Astro 7.4.0 (exige Node 22.22 ou mais novo), Eleventy 3.1.7, `@11ty/eleventy-img` 7.0.0, sharp 0.35.5.
+
+### Recomendação: Astro 7
+
+O plano pede que um erro de digitação quebre o build com mensagem clara. O Astro é o único dos quatro em que isso vem pronto, inclusive para as duas validações mais úteis aqui: "este clube existe?" e "esta foto existe?". A otimização de imagem também vem pronta e com cache. Nos outros, as duas coisas viram código nosso para manter.
+
+O que pesa contra, e como reduzir:
+
+- **Árvore de dependências grande.** Fixar versões com `package-lock.json` e não atualizar sem motivo. O site não tem backend nem dados sensíveis, então a superfície de ataque de uma dependência desatualizada é o build, não o visitante.
+- **Versão principal nova todo ano.** Não é obrigatório acompanhar. Um site estático pronto continua funcionando; a atualização só é necessária quando o Node da versão fixada sair de suporte.
+- **Ferramenta maior que o problema.** O site tem duas ou três páginas (araras, grade, ficha). Se você preferir o mínimo absoluto, a alternativa "sem gerador" é viável e tem o código mais fácil de ler; custa escrever à mão o que o Astro já faz (validação de referências, `srcset`, cache de imagens, servidor local). Minha avaliação é que esse código próprio sairia maior do que a configuração do Astro.
+
+**Fora de questão:** React, Vue ou outro framework de interface. Os filtros, a URL e o balanço da arara são JavaScript puro, como nos protótipos, e o código de `prototipos/comum.js` é reaproveitado quase direto.
+
+### Dependências previstas na v1
+
+| Pacote | Para quê |
+|---|---|
+| `astro` | Gerador do site, content collections, otimização de imagem (traz o sharp). |
+| `@sveltia/cms` | Não é dependência de npm: o painel `/admin/` carrega o script de uma CDN, com a versão fixada na URL. |
+
+Nada mais. Fontes (Londrina Solid, Archivo) servidas pelo próprio site, para não depender do Google Fonts.
+
+### Deploy
+
+GitHub Actions com a ação oficial do Astro, a cada push na `main`:
+
+```yaml
+# .github/workflows/deploy.yml (esboço)
+on: { push: { branches: [main] }, workflow_dispatch: {} }
+permissions: { contents: read, pages: write, id-token: write }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4          # imagens já otimizadas em builds anteriores
+        with: { path: node_modules/.astro, key: imagens-${{ hashFiles('src/content/camisas/**') }}, restore-keys: imagens- }
+      - uses: withastro/action@v3
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: '${{ steps.deploy.outputs.page_url }}' }
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
+```
+
+- Em Settings → Pages, a fonte passa a ser "GitHub Actions".
+- O cache das imagens importa: sem ele, cada camisa nova faz o build reprocessar todas as fotos da coleção. As versões das ações (`@v3`, `@v4`) serão conferidas na hora de criar o arquivo.
+- Se a validação falhar, o deploy não acontece e o site continua na versão anterior. O GitHub manda e-mail com o erro.
+- Tempo estimado do cadastro até o site: 1 a 3 minutos, a confirmar na Etapa 4.
