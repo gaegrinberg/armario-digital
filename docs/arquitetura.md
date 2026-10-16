@@ -407,7 +407,7 @@ Três lugares, cada um com um papel:
 **WebP para tudo na v1, sem AVIF.**
 
 - WebP funciona em todos os navegadores atuais, tem transparência (essencial para a camisa recortada) e codifica rápido.
-- AVIF costuma sair menor para a mesma qualidade, mas codifica bem mais devagar e exigiria `<picture>` com dois formatos, o que dobra o trabalho do build. O próprio Sveltia não gera AVIF por esse motivo.
+- AVIF costuma sair menor para a mesma qualidade, mas codifica bem mais devagar e exigiria `<picture>` com dois formatos, o que dobra o trabalho do build. O Sveltia não gera AVIF no navegador pelo mesmo motivo: a codificação é lenta.
 - Vale medir na Etapa 4, com as primeiras fotos reais: se o AVIF economizar muito nas miniaturas, entra só nelas.
 
 ### Dimensões e metas de tamanho
@@ -504,3 +504,27 @@ Com as cores do São Paulo, a faixa no peito lembra a camisa do clube. Minha lei
 - **Ids únicos:** o recorte do padrão usa `clipPath` com id; no protótipo o id vem de um contador global, no build sai do slug da camisa.
 - **Acessibilidade:** mantém o rótulo "Silhueta da camisa {clube} {temporada}" quando a silhueta substitui a foto, e fica oculta para leitores de tela quando é decorativa (cabide vazio da lista de desejos já tem o texto na etiqueta).
 - **Lista de desejos:** mesma silhueta, em cinza e transparente, como no protótipo.
+
+---
+
+## Para decidir no Checkpoint 3
+
+1. **Esquema (3.1).** Aprovar os campos, as listas fechadas e a escala de conservação. Em especial: o cadastro de clubes separado da camisa, e `fabricante`/`liga` como texto livre com checagem de grafia.
+2. **Seleção brasileira.** Ela não tem UF. Opções: uma arara própria "Seleção", antes das regiões; ou junto do Sudeste (sede da CBF), o que me parece forçado. Recomendo a arara própria, se você tiver camisas da Seleção.
+3. **Preço.** Você quer registrar preço ou valor? Se sim, planilha (opção A) ou repositório privado (opção B).
+4. **Cadastro (3.3).** Aprovar Sveltia CMS com token pessoal. O ponto fraco é a versão 0.x; a alternativa estável é o Decap, que perde o celular e a conversão das fotos.
+5. **Celular.** iPhone ou Android, e qual modelo? Define se a remoção de fundo nativa resolve.
+6. **Fotos (3.4).** Aprovar WebP sem AVIF na v1, as metas de tamanho e a posição "estendida, de cima".
+7. **Silhueta (3.5).** Confirmar que a `faixa-peito` respeita a regra da silhueta genérica.
+
+---
+
+## Fontes
+
+- Astro: [deploy no GitHub Pages](https://docs.astro.build/en/guides/deploy/github/), [novidades de março de 2026](https://astro.build/blog/whats-new-march-2026/), [changelog](https://releases.sh/astro/astro-changelog.md). Versão 7.4.0, dependência de Zod 4 e `cacheDir` padrão conferidos no pacote publicado no npm.
+- Sveltia CMS: [repositório](https://github.com/sveltia/sveltia-cms), [releases](https://github.com/sveltia/sveltia-cms/releases), [documentação do backend GitHub](https://sveltiacms.app/en/docs/backends/github), [autenticador para Cloudflare Workers](https://github.com/sveltia/sveltia-cms-auth). Opções de transformação de imagem e a ausência de PKCE no GitHub conferidas nos tipos do pacote `@sveltia/cms` 0.245.0.
+- Decap CMS: [releases](https://github.com/decaporg/decap-cms/releases), [discussão sobre o fim do Netlify Identity](https://github.com/decaporg/decap-cms/discussions/7419), [proxy OAuth em Lambda](https://github.com/daisuke-awaji/decapcms-lambda-oauth2-backend).
+- Pages CMS: [repositório e instruções](https://github.com/pages-cms/pages-cms), [GitHub App](https://pagescms.org/docs/guides/installing/github-app/), [início rápido](https://pagescms.org/docs/quick-start.md).
+- Keystatic: [discussão sobre site estático](https://github.com/Thinkmill/keystatic/discussions/826).
+- GitHub e PKCE: [changelog de julho de 2025](https://github.blog/changelog/2025-07-14-pkce-support-for-oauth-and-github-app-authentication/), [discussão sobre clientes públicos](https://github.com/orgs/community/discussions/15752).
+- Remoção de fundo: [rembg](https://github.com/danielgatis/rembg) (tamanhos dos modelos conferidos nos arquivos de release), [RMBG 2.0 da BRIA](https://bria.ai/introducing-the-rmbg-v2-0-model-the-next-generation-in-background-removal-from-images), [@imgly/background-removal](https://unpkg.com/@imgly/background-removal@1.5.8/README.md), [recorte no iPhone (9to5Mac)](https://9to5mac.com/2024/02/10/ios-remove-background-of-image/), [Copiar objeto no iOS 26 (iPhone Life)](https://iphonelife.com/content/copy-subject), [recorte no Android (SlashGear)](https://www.slashgear.com/1570781/how-to-remove-background-photos-android).
