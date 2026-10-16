@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armário Digital · Museu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comum.css">
+<style>
+  :root {
+    --fundo: #F6F4EF; --superficie: #FFFFFF; --placa: #E9E5DD;
+    --texto: #1D1B18; --texto-2: #5C564E; --borda: #D6D0C5;
+    --acento: #8A2D1C; --sobre-acento: #FFFFFF;
+    --contorno-camisa: rgb(0 0 0 / 0.22);
+    --fonte-titulo: 'Source Serif 4', Georgia, serif;
+    --fonte-texto: 'Inter', system-ui, sans-serif;
+    --raio: 4px; --raio-placa: 2px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #141312; --superficie: #1C1B19; --placa: #211F1D;
+      --texto: #EDE9E2; --texto-2: #A9A296; --borda: #3A3632;
+      --acento: #E89A82; --sobre-acento: #1D1B18;
+      --contorno-camisa: rgb(255 255 255 / 0.18);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fundo: #141312; --superficie: #1C1B19; --placa: #211F1D;
+    --texto: #EDE9E2; --texto-2: #A9A296; --borda: #3A3632;
+    --acento: #E89A82; --sobre-acento: #1D1B18;
+    --contorno-camisa: rgb(255 255 255 / 0.18);
+    color-scheme: dark;
+  }
+
+  .pagina { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
+
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 28px 0 20px; }
+  h1 { margin: 0; font-family: var(--fonte-titulo); font-weight: 600; font-size: clamp(1.75rem, 6vw, 2.5rem); line-height: 1.1; letter-spacing: -0.01em; }
+  .resumo { margin: 6px 0 0; color: var(--texto-2); }
+
+  .abas { display: flex; gap: 24px; border-bottom: 1px solid var(--borda); margin-bottom: 16px; }
+  .abas button {
+    min-height: 44px; padding: 0; background: none; border: 0; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; color: var(--texto-2); cursor: pointer;
+  }
+  .abas button[aria-selected="true"] { color: var(--texto); border-color: var(--texto); font-weight: 500; }
+
+  .controles { display: grid; gap: 12px; margin-bottom: 8px; }
+  .linha-ordem { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--texto-2); font-size: 0.9375rem; }
+  .linha-ordem select {
+    min-height: 40px; padding: 0 8px; border: 1px solid var(--borda); border-radius: var(--raio);
+    background: var(--superficie);
+  }
+
+  .grade {
+    display: grid; gap: 28px 16px; margin-top: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  }
+  @media (min-width: 760px) { .grade { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 40px 24px; } }
+
+  .item { display: block; width: 100%; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+  .item .placa { aspect-ratio: 4 / 5; background: var(--placa); border-radius: var(--raio-placa); padding: 10%; transition: background .2s; }
+  .item:hover .placa { background: color-mix(in srgb, var(--placa) 85%, var(--texto)); }
+  .etiqueta { padding-top: 10px; }
+  .etiqueta .n { margin: 0; font-size: 0.8125rem; color: var(--texto-2); font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+  .etiqueta h3 { margin: 2px 0 0; font-family: var(--fonte-titulo); font-weight: 600; font-size: 1.125rem; line-height: 1.25; }
+  .etiqueta .meta { margin: 2px 0 0; color: var(--texto-2); font-size: 0.9375rem; }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header>
+    <div>
+      <h1>Armário Digital</h1>
+      <p class="resumo" id="resumo"></p>
+    </div>
+    <button class="botao-tema" id="tema" type="button"></button>
+  </header>
+
+  <div class="abas" role="tablist">
+    <button role="tab" aria-selected="true" data-status="colecao">Coleção</button>
+    <button role="tab" aria-selected="false" data-status="desejo">Lista de desejos</button>
+  </div>
+
+  <div class="controles">
+    <label class="oculto" for="busca">Buscar</label>
+    <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, país, história…">
+    <div class="chips" id="chips" aria-label="Filtrar por país"></div>
+    <div class="linha-ordem">
+      <span id="contagem" aria-live="polite"></span>
+      <label>Ordenar por
+        <select id="ordem">
+          <option value="numero">Número</option>
+          <option value="temporada">Temporada</option>
+          <option value="clube">Clube</option>
+          <option value="cor">Cor</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="grade" id="grade"></div>
+</div>
+
+<script src="comum.js"></script>
+<script>
+  const estado = { status: 'colecao', busca: '', pais: '', ordem: 'numero' };
+
+  function render() {
+    const base = CAMISAS.filter(c => c.status === estado.status);
+    const colecao = CAMISAS.filter(c => c.status === 'colecao');
+    document.getElementById('resumo').textContent =
+      `${colecao.length} camisas · ${new Set(colecao.map(c => c.pais)).size} países`;
+
+    const porBusca = filtrar(base, { busca: estado.busca });
+    document.getElementById('chips').innerHTML =
+      `<button class="chip" aria-pressed="${!estado.pais}" data-pais="">Todos<span class="n">${porBusca.length}</span></button>` +
+      contar(porBusca, 'pais').map(([pais, n]) =>
+        `<button class="chip" aria-pressed="${estado.pais === pais}" data-pais="${pais}">${pais}<span class="n">${n}</span></button>`).join('');
+
+    const lista = filtrar(base, { busca: estado.busca, filtros: { pais: estado.pais } }).sort(ORDENS[estado.ordem]);
+    document.getElementById('contagem').textContent = `${lista.length} ${lista.length === 1 ? 'camisa' : 'camisas'}`;
+    document.getElementById('grade').innerHTML = lista.length ? lista.map(c => `
+      <button class="item" type="button" data-id="${c.id}">
+        <div class="placa">${silhueta(c, { rotulo: false })}</div>
+        <div class="etiqueta">
+          <p class="n">${c.numero ? 'Nº ' + String(c.numero).padStart(3, '0') : 'Procura-se'}</p>
+          <h3>${c.clube}</h3>
+          <p class="meta">${c.temporada} · ${c.tipo}</p>
+        </div>
+      </button>`).join('') : '<p class="vazio">Nenhuma camisa encontrada.</p>';
+  }
+
+  document.getElementById('busca').addEventListener('input', e => { estado.busca = e.target.value; estado.pais = ''; render(); });
+  document.getElementById('ordem').addEventListener('change', e => { estado.ordem = e.target.value; render(); });
+  document.getElementById('chips').addEventListener('click', e => {
+    const chip = e.target.closest('[data-pais]'); if (!chip) return;
+    estado.pais = chip.dataset.pais; render();
+  });
+  document.querySelector('.abas').addEventListener('click', e => {
+    const aba = e.target.closest('[data-status]'); if (!aba) return;
+    estado.status = aba.dataset.status; estado.pais = '';
+    document.querySelectorAll('.abas button').forEach(b => b.setAttribute('aria-selected', String(b === aba)));
+    render();
+  });
+  document.getElementById('grade').addEventListener('click', e => {
+    const item = e.target.closest('[data-id]'); if (!item) return;
+    abrirFicha(CAMISAS.find(c => c.id === item.dataset.id));
+  });
+
+  configurarTema(document.getElementById('tema'));
+  render();
+</script>
+</body>
+</html>

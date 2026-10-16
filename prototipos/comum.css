@@ -1,0 +1,99 @@
+/* Estrutura compartilhada. Cada protótipo define os tokens de cor e fonte. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte-texto);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+button, input, select { font: inherit; color: inherit; }
+
+:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+.oculto {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.silhueta { display: block; width: 100%; height: 100%; }
+
+.botao-tema {
+  min-height: 44px; padding: 0 14px;
+  background: transparent; border: 1px solid var(--borda); border-radius: 999px;
+  color: var(--texto-2); font-size: 0.875rem; cursor: pointer; white-space: nowrap; flex: none;
+}
+
+/* Chips de filtro: uma linha rolável no celular */
+.chips {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 2px 16px 8px; margin: 0 -16px;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; min-height: 40px; padding: 0 14px;
+  border: 1px solid var(--borda); border-radius: 999px;
+  background: var(--superficie); cursor: pointer; white-space: nowrap;
+  font-size: 0.9375rem;
+}
+.chip[aria-pressed="true"] { background: var(--acento); border-color: var(--acento); color: var(--sobre-acento); }
+.chip .n { opacity: 0.75; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+.campo-busca {
+  width: 100%; min-height: 48px; padding: 0 16px;
+  border: 1px solid var(--borda); border-radius: var(--raio);
+  background: var(--superficie);
+}
+.campo-busca::placeholder { color: var(--texto-2); }
+
+.vazio { color: var(--texto-2); padding: 32px 0; }
+
+/* Ficha da camisa: painel inferior no celular, janela no computador */
+dialog#ficha {
+  padding: 0; border: 0; max-width: 100vw; max-height: 92vh;
+  width: 100%; margin: auto 0 0; border-radius: var(--raio) var(--raio) 0 0;
+  background: var(--fundo); color: var(--texto);
+}
+dialog#ficha::backdrop { background: rgb(0 0 0 / 0.55); }
+.ficha { position: relative; padding: 16px 16px 32px; }
+.ficha-fechar {
+  position: absolute; top: 8px; right: 8px; z-index: 1;
+  width: 44px; height: 44px; border: 0; border-radius: 999px;
+  background: var(--superficie); font-size: 1.5rem; line-height: 1; cursor: pointer;
+}
+.ficha-placa {
+  aspect-ratio: 4 / 5; max-height: 52vh; margin: 0 auto;
+  background: var(--placa); border-radius: var(--raio-placa, 0);
+  padding: 8%;
+}
+.ficha-lados { display: flex; justify-content: center; gap: 8px; margin: 12px 0 4px; }
+.ficha-lados button {
+  min-height: 40px; padding: 0 16px; border: 1px solid var(--borda); border-radius: 999px;
+  background: transparent; cursor: pointer;
+}
+.ficha-lados button[aria-pressed="true"] { background: var(--texto); color: var(--fundo); border-color: var(--texto); }
+.ficha-numero { margin: 16px 0 0; color: var(--texto-2); font-size: 0.875rem; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+.ficha h2 { margin: 4px 0 0; font-family: var(--fonte-titulo); font-size: 1.75rem; line-height: 1.15; }
+.ficha-sub { margin: 4px 0 0; color: var(--texto-2); }
+.ficha-historia { margin: 16px 0 0; font-size: 1.0625rem; max-width: 60ch; }
+.ficha-campos {
+  display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px;
+  margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--borda);
+  font-size: 0.9375rem;
+}
+.ficha-campos dt { color: var(--texto-2); }
+.ficha-campos dd { margin: 0; }
+
+@media (min-width: 760px) {
+  dialog#ficha { width: min(960px, 92vw); margin: auto; border-radius: var(--raio); }
+  .ficha { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 32px; }
+  .ficha-placa { max-height: 70vh; }
+  .ficha-numero { margin-top: 8px; }
+}

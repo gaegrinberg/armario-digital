@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armário Digital · Arara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comum.css">
+<style>
+  :root {
+    --fundo: #ECEEF1; --superficie: #FFFFFF; --placa: #DFE3E8;
+    --texto: #14171B; --texto-2: #535B65; --borda: #C9CFD6;
+    --metal: #8E959E;
+    --acento: #1D5BC4; --sobre-acento: #FFFFFF;
+    --contorno-camisa: rgb(0 0 0 / 0.22);
+    --fonte-titulo: 'Archivo Narrow', 'Arial Narrow', sans-serif;
+    --fonte-texto: 'Archivo', system-ui, sans-serif;
+    --raio: 6px; --raio-placa: 6px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #0E1013; --superficie: #181C21; --placa: #1E2328;
+      --texto: #E9ECEF; --texto-2: #A1A9B3; --borda: #2E343B;
+      --metal: #5C646E;
+      --acento: #7FA8F0; --sobre-acento: #0B1424;
+      --contorno-camisa: rgb(255 255 255 / 0.18);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fundo: #0E1013; --superficie: #181C21; --placa: #1E2328;
+    --texto: #E9ECEF; --texto-2: #A1A9B3; --borda: #2E343B;
+    --metal: #5C646E;
+    --acento: #7FA8F0; --sobre-acento: #0B1424;
+    --contorno-camisa: rgb(255 255 255 / 0.18);
+    color-scheme: dark;
+  }
+
+  .pagina { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
+
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 24px 0 16px; }
+  h1 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: clamp(1.875rem, 7vw, 2.75rem); line-height: 1; text-transform: uppercase; letter-spacing: 0.03em; }
+  .resumo { margin: 6px 0 0; color: var(--texto-2); font-size: 0.9375rem; }
+
+  .segmentos { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--placa); margin-bottom: 12px; }
+  .segmentos button {
+    min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent;
+    color: var(--texto-2); cursor: pointer; font-weight: 500;
+  }
+  .segmentos button[aria-selected="true"] { background: var(--superficie); color: var(--texto); box-shadow: 0 1px 2px rgb(0 0 0 / 0.15); }
+
+  .controles { display: grid; gap: 12px; }
+  .linha { display: flex; align-items: center; gap: 8px; color: var(--texto-2); flex-wrap: wrap; }
+  .linha .chip { font-size: 0.875rem; min-height: 36px; }
+
+  .arara { margin-top: 28px; }
+  .arara-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .arara h2 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.375rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .arara h2 small { margin-left: 8px; font-family: var(--fonte-texto); font-weight: 400; font-size: 0.875rem; letter-spacing: 0; text-transform: none; color: var(--texto-2); }
+  .setas { display: flex; gap: 6px; }
+  .setas button {
+    width: 40px; height: 40px; border: 1px solid var(--borda); border-radius: 999px;
+    background: var(--superficie); cursor: pointer; font-size: 1.125rem; line-height: 1;
+  }
+
+  .trilho {
+    position: relative; display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding: 0 16px 8px; margin: 0 -16px; scrollbar-width: thin;
+    scroll-padding: 0 16px;
+  }
+  /* Barra da arara: atravessa a linha na altura dos ganchos */
+  .trilho::before {
+    content: ''; position: absolute; left: 0; right: 0; top: 7px; height: 4px; border-radius: 2px;
+    background: var(--metal); min-width: 100%; width: var(--largura-trilho, 100%);
+  }
+
+  .cabide {
+    position: relative; flex: none; width: 44vw; max-width: 220px; padding: 0;
+    border: 0; background: none; cursor: pointer; scroll-snap-align: start; text-align: center;
+  }
+  @media (min-width: 760px) { .cabide { width: 200px; } }
+  .cabide .gancho { display: block; width: 44%; margin: 0 auto; color: var(--metal); }
+  .cabide .camisa { margin-top: -14%; padding: 0 6%; transform-origin: 50% 0; transition: transform .25s ease; }
+  .cabide:hover .camisa, .cabide:focus-visible .camisa { transform: rotate(-2deg); }
+  .cabide .silhueta { aspect-ratio: 1 / 0.92; filter: drop-shadow(0 6px 8px rgb(0 0 0 / 0.18)); }
+  .cabide h3 { margin: 6px 0 0; font-family: var(--fonte-titulo); font-weight: 600; font-size: 1.0625rem; line-height: 1.2; }
+  .cabide .meta { margin: 0; color: var(--texto-2); font-size: 0.875rem; }
+  @media (prefers-reduced-motion: reduce) { .cabide .camisa { transition: none; } .trilho { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header>
+    <div>
+      <h1>Armário Digital</h1>
+      <p class="resumo" id="resumo"></p>
+    </div>
+    <button class="botao-tema" id="tema" type="button"></button>
+  </header>
+
+  <div class="segmentos" role="tablist">
+    <button role="tab" aria-selected="true" data-status="colecao">Coleção</button>
+    <button role="tab" aria-selected="false" data-status="desejo">Lista de desejos</button>
+  </div>
+
+  <div class="controles">
+    <label class="oculto" for="busca">Buscar</label>
+    <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, país, história…">
+    <div class="linha" role="group" aria-label="Agrupar araras por">
+      <span>Araras por</span>
+      <button class="chip" aria-pressed="true" data-agrupar="decada">Década</button>
+      <button class="chip" aria-pressed="false" data-agrupar="pais">País</button>
+      <button class="chip" aria-pressed="false" data-agrupar="tipo">Tipo</button>
+    </div>
+  </div>
+
+  <div id="araras" aria-live="polite"></div>
+</div>
+
+<script src="comum.js"></script>
+<script>
+  const estado = { status: 'colecao', busca: '', agrupar: 'decada' };
+
+  const GANCHO = `<svg class="gancho" viewBox="0 0 100 44" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M50 26 V18 C50 14 58 13 58 7 C58 2 50 0 46 4"/>
+    <path d="M50 26 L8 42 H92 Z"/>
+  </svg>`;
+
+  // Década em ordem decrescente; outros agrupamentos em ordem alfabética
+  function ordemGrupo(a, b) {
+    if (estado.agrupar === 'decada') return b.localeCompare(a, 'pt', { numeric: true });
+    return a.localeCompare(b, 'pt');
+  }
+
+  function render() {
+    const colecao = CAMISAS.filter(c => c.status === 'colecao');
+    document.getElementById('resumo').textContent =
+      `${colecao.length} camisas penduradas · ${new Set(colecao.map(c => c.decada)).size} décadas`;
+
+    const lista = filtrar(CAMISAS.filter(c => c.status === estado.status), { busca: estado.busca })
+      .sort(ORDENS.temporada);
+    const grupos = new Map();
+    for (const c of lista) {
+      if (!grupos.has(c[estado.agrupar])) grupos.set(c[estado.agrupar], []);
+      grupos.get(c[estado.agrupar]).push(c);
+    }
+
+    document.getElementById('araras').innerHTML = grupos.size ? [...grupos.entries()]
+      .sort((a, b) => ordemGrupo(a[0], b[0]))
+      .map(([nome, itens], i) => `
+        <section class="arara">
+          <div class="arara-topo">
+            <h2 id="arara-${i}">${nome}<small>${itens.length}</small></h2>
+            <div class="setas">
+              <button type="button" data-rolar="-1" aria-label="Anterior em ${nome}">‹</button>
+              <button type="button" data-rolar="1" aria-label="Próxima em ${nome}">›</button>
+            </div>
+          </div>
+          <div class="trilho" role="group" aria-labelledby="arara-${i}">
+            ${itens.map(c => `
+              <button class="cabide" type="button" data-id="${c.id}" aria-label="${titulo(c)}, ${c.tipo}">
+                ${GANCHO}
+                <div class="camisa">${silhueta(c, { rotulo: false })}</div>
+                <h3>${c.clube}</h3>
+                <p class="meta">${c.temporada} · ${c.tipo}</p>
+              </button>`).join('')}
+          </div>
+        </section>`).join('') : '<p class="vazio">Nenhuma camisa encontrada.</p>';
+
+    // A barra acompanha toda a largura rolável
+    document.querySelectorAll('.trilho').forEach(t => t.style.setProperty('--largura-trilho', t.scrollWidth + 'px'));
+  }
+
+  document.getElementById('busca').addEventListener('input', e => { estado.busca = e.target.value; render(); });
+  document.querySelector('.linha').addEventListener('click', e => {
+    const chip = e.target.closest('[data-agrupar]'); if (!chip) return;
+    estado.agrupar = chip.dataset.agrupar;
+    document.querySelectorAll('[data-agrupar]').forEach(b => b.setAttribute('aria-pressed', String(b === chip)));
+    render();
+  });
+  document.querySelector('.segmentos').addEventListener('click', e => {
+    const aba = e.target.closest('[data-status]'); if (!aba) return;
+    estado.status = aba.dataset.status;
+    document.querySelectorAll('.segmentos button').forEach(b => b.setAttribute('aria-selected', String(b === aba)));
+    render();
+  });
+  document.getElementById('araras').addEventListener('click', e => {
+    const seta = e.target.closest('[data-rolar]');
+    if (seta) {
+      const trilho = seta.closest('.arara').querySelector('.trilho');
+      trilho.scrollBy({ left: Number(seta.dataset.rolar) * trilho.clientWidth * 0.8, behavior: 'smooth' });
+      return;
+    }
+    const item = e.target.closest('[data-id]'); if (!item) return;
+    abrirFicha(CAMISAS.find(c => c.id === item.dataset.id));
+  });
+
+  configurarTema(document.getElementById('tema'));
+  render();
+</script>
+</body>
+</html>

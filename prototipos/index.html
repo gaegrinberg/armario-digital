@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armário Digital · Protótipos</title>
+<link rel="stylesheet" href="comum.css">
+<style>
+  :root {
+    --fundo: #F5F5F3; --superficie: #FFFFFF; --placa: #E8E8E4;
+    --texto: #1B1B1A; --texto-2: #5A5A56; --borda: #D5D5D0;
+    --acento: #1D5BC4; --sobre-acento: #FFFFFF;
+    --contorno-camisa: rgb(0 0 0 / 0.22);
+    --fonte-texto: system-ui, sans-serif; --fonte-titulo: system-ui, sans-serif;
+    --raio: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #121212; --superficie: #1C1C1C; --placa: #242424;
+      --texto: #ECECEC; --texto-2: #A5A5A5; --borda: #333333;
+      --acento: #7FA8F0; --sobre-acento: #0B1424;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fundo: #121212; --superficie: #1C1C1C; --placa: #242424;
+    --texto: #ECECEC; --texto-2: #A5A5A5; --borda: #333333;
+    --acento: #7FA8F0; --sobre-acento: #0B1424;
+    color-scheme: dark;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { margin: 0 0 4px; font-size: 1.75rem; }
+  p { color: var(--texto-2); margin: 0 0 24px; }
+  a.opcao {
+    display: block; padding: 18px 20px; margin-bottom: 12px; border: 1px solid var(--borda);
+    border-radius: var(--raio); background: var(--superficie); color: var(--texto); text-decoration: none;
+  }
+  a.opcao:hover { border-color: var(--acento); }
+  a.opcao strong { display: block; font-size: 1.125rem; }
+  a.opcao span { color: var(--texto-2); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Armário Digital: protótipos</h1>
+  <p>Três direções de design com 8 camisas fictícias. Detalhes em <code>docs/design.md</code>.</p>
+  <a class="opcao" href="museu.html"><strong>A. Vitrine de museu</strong><span>Grade silenciosa, etiqueta de museu, foto em destaque.</span></a>
+  <a class="opcao" href="album.html"><strong>B. Álbum de figurinhas</strong><span>Páginas por país, lista de desejos como figurinhas faltando.</span></a>
+  <a class="opcao" href="arara.html"><strong>C. Arara de vestiário</strong><span>Camisas em cabides, uma arara por década, rolagem lateral.</span></a>
+</main>
+</body>
+</html>

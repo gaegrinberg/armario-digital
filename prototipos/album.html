@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armário Digital · Álbum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comum.css">
+<style>
+  :root {
+    --fundo: #FBF6EA; --superficie: #FFFFFF; --placa: #EFEADF;
+    --texto: #1A1F24; --texto-2: #55606B; --borda: #DDD5C3;
+    --acento: #0B6E4F; --sobre-acento: #FFFFFF;
+    --contorno-camisa: rgb(0 0 0 / 0.22);
+    --sombra: 0 1px 2px rgb(60 40 0 / 0.08), 0 2px 8px rgb(60 40 0 / 0.06);
+    --fonte-titulo: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --fonte-texto: 'Barlow', system-ui, sans-serif;
+    --raio: 10px; --raio-placa: 6px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #11161B; --superficie: #1B2229; --placa: #252D35;
+      --texto: #ECEFF2; --texto-2: #A3AEB9; --borda: #323C46;
+      --acento: #5FD3A6; --sobre-acento: #0B1A14;
+      --contorno-camisa: rgb(255 255 255 / 0.18);
+      --sombra: 0 1px 2px rgb(0 0 0 / 0.4);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fundo: #11161B; --superficie: #1B2229; --placa: #252D35;
+    --texto: #ECEFF2; --texto-2: #A3AEB9; --borda: #323C46;
+    --acento: #5FD3A6; --sobre-acento: #0B1A14;
+    --contorno-camisa: rgb(255 255 255 / 0.18);
+    --sombra: 0 1px 2px rgb(0 0 0 / 0.4);
+    color-scheme: dark;
+  }
+
+  .pagina { max-width: 1180px; margin: 0 auto; padding: 0 16px 64px; }
+
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 24px 0 16px; }
+  h1 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: clamp(2rem, 8vw, 3rem); line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; }
+  .progresso { margin: 8px 0 0; color: var(--texto-2); font-weight: 500; }
+  .barra { height: 6px; width: 180px; max-width: 100%; margin-top: 8px; border-radius: 3px; background: var(--borda); overflow: hidden; }
+  .barra span { display: block; height: 100%; background: var(--acento); }
+
+  .controles { display: grid; gap: 12px; margin-bottom: 8px; }
+  .linha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; color: var(--texto-2); }
+  .linha select {
+    min-height: 40px; padding: 0 8px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie);
+  }
+  .linha label.check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+  .linha input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--acento); }
+
+  .pagina-album { margin-top: 28px; }
+  .pagina-album h2 {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin: 0 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--texto);
+    font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.625rem; text-transform: uppercase; letter-spacing: 0.02em;
+  }
+  .pagina-album h2 small { font-family: var(--fonte-texto); font-weight: 500; font-size: 0.9375rem; color: var(--texto-2); text-transform: none; letter-spacing: 0; }
+
+  .grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  @media (min-width: 760px) { .grade { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 20px; } }
+
+  .figurinha {
+    position: relative; display: flex; flex-direction: column; width: 100%; padding: 8px 8px 0;
+    border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie);
+    box-shadow: var(--sombra); text-align: left; cursor: pointer; overflow: hidden;
+    transition: transform .15s;
+  }
+  .figurinha:hover { transform: translateY(-2px); }
+  .figurinha .placa { aspect-ratio: 4 / 5; background: var(--placa); border-radius: var(--raio-placa); padding: 10%; }
+  .figurinha .num {
+    position: absolute; top: 14px; left: 14px; padding: 1px 7px; border-radius: 4px;
+    background: var(--texto); color: var(--fundo);
+    font-family: var(--fonte-titulo); font-weight: 700; font-size: 0.9375rem; font-variant-numeric: tabular-nums;
+  }
+  .figurinha .nome { padding: 8px 2px 10px; }
+  .figurinha h3 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.1875rem; line-height: 1.1; text-transform: uppercase; }
+  .figurinha .meta { margin: 2px 0 0; font-size: 0.9375rem; color: var(--texto-2); }
+  .figurinha .faixa { display: flex; height: 6px; margin: 0 -8px; }
+  .figurinha .faixa span { flex: 1; }
+
+  /* Figurinha faltante: lista de desejos */
+  .figurinha.falta { background: transparent; border: 2px dashed var(--borda); box-shadow: none; }
+  .figurinha.falta .placa { background: transparent; opacity: 0.32; filter: grayscale(1); }
+  .figurinha.falta .num { background: transparent; color: var(--texto-2); border: 1px dashed var(--texto-2); }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header>
+    <div>
+      <h1>Armário Digital</h1>
+      <p class="progresso" id="progresso"></p>
+      <div class="barra" aria-hidden="true"><span id="barra"></span></div>
+    </div>
+    <button class="botao-tema" id="tema" type="button"></button>
+  </header>
+
+  <div class="controles">
+    <label class="oculto" for="busca">Buscar</label>
+    <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, país, história…">
+    <div class="linha">
+      <label>Páginas por
+        <select id="agrupar">
+          <option value="decada">Década</option>
+          <option value="pais">País</option>
+          <option value="tipo">Tipo</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="faltantes" checked> Mostrar faltantes</label>
+    </div>
+  </div>
+
+  <div id="paginas" aria-live="polite"></div>
+</div>
+
+<script src="comum.js"></script>
+<script>
+  const estado = { busca: '', agrupar: 'decada', faltantes: true };
+
+  function figurinha(c) {
+    const falta = c.status === 'desejo';
+    const faixa = c.cores.map(cor => `<span style="background:${cor}"></span>`).join('');
+    return `
+      <button class="figurinha${falta ? ' falta' : ''}" type="button" data-id="${c.id}"
+        aria-label="${titulo(c)}${falta ? ', faltando' : ''}">
+        <span class="num">${falta ? 'falta' : String(c.numero).padStart(3, '0')}</span>
+        <div class="placa">${silhueta(c, { rotulo: false })}</div>
+        <div class="nome">
+          <h3>${c.clube}</h3>
+          <p class="meta">${c.temporada} · ${c.tipo}</p>
+        </div>
+        ${falta ? '' : `<div class="faixa" aria-hidden="true">${faixa}</div>`}
+      </button>`;
+  }
+
+  function render() {
+    const coladas = CAMISAS.filter(c => c.status === 'colecao').length;
+    const total = CAMISAS.length;
+    document.getElementById('progresso').textContent = `${coladas} coladas · ${total - coladas} faltando`;
+    document.getElementById('barra').style.width = `${(coladas / total) * 100}%`;
+
+    let lista = filtrar(CAMISAS, { busca: estado.busca });
+    if (!estado.faltantes) lista = lista.filter(c => c.status === 'colecao');
+    lista.sort(ORDENS.numero);
+
+    const grupos = new Map();
+    for (const c of lista) {
+      if (!grupos.has(c[estado.agrupar])) grupos.set(c[estado.agrupar], []);
+      grupos.get(c[estado.agrupar]).push(c);
+    }
+    const ordenados = [...grupos.entries()].sort((a, b) => a[0].localeCompare(b[0], 'pt', { numeric: true }));
+
+    document.getElementById('paginas').innerHTML = ordenados.length ? ordenados.map(([nome, itens]) => {
+      const tem = itens.filter(c => c.status === 'colecao').length;
+      return `
+        <section class="pagina-album">
+          <h2>${nome} <small>${tem} de ${itens.length}</small></h2>
+          <div class="grade">${itens.map(figurinha).join('')}</div>
+        </section>`;
+    }).join('') : '<p class="vazio">Nenhuma figurinha encontrada.</p>';
+  }
+
+  document.getElementById('busca').addEventListener('input', e => { estado.busca = e.target.value; render(); });
+  document.getElementById('agrupar').addEventListener('change', e => { estado.agrupar = e.target.value; render(); });
+  document.getElementById('faltantes').addEventListener('change', e => { estado.faltantes = e.target.checked; render(); });
+  document.getElementById('paginas').addEventListener('click', e => {
+    const item = e.target.closest('[data-id]'); if (!item) return;
+    abrirFicha(CAMISAS.find(c => c.id === item.dataset.id), { prefixoNumero: 'Figurinha' });
+  });
+
+  configurarTema(document.getElementById('tema'));
+  render();
+</script>
+</body>
+</html>
