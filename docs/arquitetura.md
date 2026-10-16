@@ -383,3 +383,124 @@ Como fica o cadastro de uma camisa no celular:
 6. Salvar. O CMS faz o commit; o site atualiza em poucos minutos.
 
 A validação existe em duas camadas: o formulário barra campo obrigatório vazio e formato errado (temporada, cor); o build barra o resto (clube inexistente, regras entre campos, grafias parecidas). O esquema do Astro é a fonte da verdade; a configuração do CMS repete só o que melhora o formulário.
+
+---
+
+## 3.4 Pipeline de fotos
+
+### O caminho de uma foto
+
+```
+celular                    navegador (Sveltia)             repositório                   build (Astro + sharp)            site
+foto original (HEIC/JPEG) → fundo removido no celular →   frente.webp                 → corta as bordas transparentes → 400, 800, 1200 e 1600 px
+fica na galeria e na nuvem   converte p/ WebP, reduz       ≤ 1600 × 2000 px, ≤ 500 KB     gera os tamanhos (WebP)          com srcset e lazy loading
+```
+
+Três lugares, cada um com um papel:
+
+1. **Original:** fica no celular e num álbum na nuvem que você já usa (iCloud, Google Fotos ou Drive), chamado "Armário Digital: originais". Nunca entra no repositório. Git LFS foi descartado: tem cota no plano gratuito e complica o checkout do build, para guardar algo que já está guardado.
+2. **Mestra no repositório:** uma versão WebP reduzida, gerada pelo CMS no navegador antes do commit. É dela que o build parte. Não é o original, mas tem resolução de sobra para o site.
+3. **Versões do site:** geradas pelo Astro a cada build (com cache) e publicadas só no GitHub Pages, fora do repositório.
+
+### Formatos
+
+**WebP para tudo na v1, sem AVIF.**
+
+- WebP funciona em todos os navegadores atuais, tem transparência (essencial para a camisa recortada) e codifica rápido.
+- AVIF costuma sair menor para a mesma qualidade, mas codifica bem mais devagar e exigiria `<picture>` com dois formatos, o que dobra o trabalho do build. O próprio Sveltia não gera AVIF por esse motivo.
+- Vale medir na Etapa 4, com as primeiras fotos reais: se o AVIF economizar muito nas miniaturas, entra só nelas.
+
+### Dimensões e metas de tamanho
+
+Proporção 4:5 (a placa do protótipo). Larguras escolhidas a partir do protótipo da arara: o cabide ocupa 42% da largura da tela no celular (até 210 px), a arara do coração 56% (até 270 px), e a ficha ocupa a largura toda. Celulares atuais têm densidade de 2 a 3 pixels por ponto.
+
+| Versão | Largura | Uso | Meta |
+|---|---|---|---|
+| Miniatura | 400 px | Cabide e grade em tela de densidade 2 | ≤ 35 KB |
+| Miniatura grande | 800 px | Cabide em densidade 3, arara do coração | ≤ 90 KB |
+| Página | 1200 px | Foto da ficha no celular e no computador | ≤ 200 KB |
+| Zoom | 1600 px | Só ao tocar para ampliar um detalhe | ≤ 400 KB |
+| Mestra (repositório) | até 1600 × 2000 px | Origem das outras | ≤ 500 KB |
+
+Justificativa das metas:
+
+- **Página inicial.** A arara mostra 6 a 10 camisas na primeira tela; o resto carrega conforme a rolagem. 10 miniaturas de 35 a 90 KB dão menos de 1 MB, o que abre em poucos segundos em 4G. Com 50 camisas e carregamento preguiçoso, o peso inicial não muda.
+- **Repositório.** O GitHub recomenda repositórios abaixo de 1 GB. Com 300 camisas e 2,5 fotos cada, mestras de 300 a 500 KB somam 225 a 375 MB. Isso deixa folga e é o motivo de a mestra não ser maior. Mestras acima de 500 KB geram aviso no build; acima de 1 MB, erro.
+- **As metas são estimativas.** Foto de camisa sobre fundo transparente comprime bem, mas os números finais saem da Etapa 4, medindo as primeiras fotos reais.
+
+Configuração prevista no Sveltia: `transformations: { raster_image: { format: webp, quality: 85, width: 1600, height: 2000 } }` e `max_file_size` de 15 MB na entrada (a foto do celular, antes de reduzir).
+
+No build, além de redimensionar, o sharp **corta as bordas transparentes** da foto recortada. Assim toda camisa encosta no topo da imagem e pendura na mesma altura do cabide, por mais que o enquadramento varie entre fotos.
+
+### Remoção de fundo
+
+A direção Arara depende disso: com fundo, a foto vira um retângulo pendurado no cabide. As opções:
+
+| Onde roda | Como | Qualidade | Peso | Problema |
+|---|---|---|---|---|
+| **No celular, nativo** | iPhone: no app Arquivos, toque longo na foto → Ações rápidas → Remover fundo (salva um PNG recortado); ou toque longo no objeto na foto → Copiar. Android: depende do aparelho (Google Fotos e a Galeria da Samsung têm recorte em modelos recentes). | Boa em objeto contrastado com o fundo. Você vê o resultado antes de subir. | Nenhum para o projeto. | Um passo manual a mais por foto. No Android, a disponibilidade varia. |
+| No computador (script) | `rembg` (licença MIT), com modelos de 176 MB (`u2net`, `isnet-general-use`) a 1 GB (`birefnet-general`). O padrão atual, `bria-rmbg`, tem licença que exige acordo pago para uso comercial. | Muito boa com `isnet-general-use` ou `birefnet-general-lite` (224 MB). | Python e centenas de MB de modelo, na sua máquina. | Exige computador. Bom para lote. |
+| No build (GitHub Actions) | O mesmo `rembg` rodando no CI. | Igual à anterior. | Baixa centenas de MB de modelo e roda em CPU a cada foto nova. | **Ninguém confere o recorte antes de publicar.** Um recorte que come a manga vai direto para o site. Resultado pode mudar quando o modelo for atualizado. |
+| No navegador, dentro do CMS | Bibliotecas como `@imgly/background-removal` (licença AGPL) ou modelos via transformers.js. | Média a boa. | Dezenas de MB baixados no celular a cada sessão; widget customizado no CMS. | Complexidade alta para a v1. |
+| Serviço externo (remove.bg e similares) | API paga. | Muito boa. | Nenhum local. | Custo por foto e suas fotos em servidor de terceiros. |
+
+**Recomendação para a v1: recorte no próprio celular, antes do upload, e o site preparado para os dois casos.**
+
+- Foto com transparência: a camisa pendura direto no cabide, como a silhueta no protótipo.
+- Foto sem transparência: aparece dentro de uma placa (cartão na cor `--placa`) pendurada pelo cabide. Fica menos bonita, mas não quebra. É a "saída para a foto original" que os apps de guarda-roupa oferecem (Etapa 1).
+
+Por que não automatizar já: o recorte manual no celular é feito com o aparelho na mão, olhando o resultado, e não acrescenta nenhuma dependência ao projeto. Automatizar no build troca esse passo por centenas de MB de modelo e por erros publicados sem revisão. Se o passo manual cansar na carga inicial, o script local com `rembg` resolve o lote sem mudar o resto do pipeline.
+
+Esta recomendação depende do seu celular: no iPhone, a remoção nativa é confiável; no Android, preciso saber o modelo.
+
+### Como fotografar
+
+O objetivo é que todas as fotos pareçam da mesma sessão e que o recorte automático do celular funcione de primeira.
+
+- **Posição:** camisa estendida numa superfície plana (cama, chão), fotografada de cima. Sem cabide real: o site desenha o cabide, e um cabide na foto apareceria duplicado. Mangas levemente abertas para baixo, como na silhueta; gola no alto, centralizada.
+- **Fundo:** liso, sem estampa e com **contraste** com a camisa: lençol ou cartolina cinza-médio serve para quase tudo. Camisa branca em fundo branco e camisa preta em fundo preto confundem o recorte.
+- **Luz:** perto de uma janela, de dia, sem sol direto. Sem flash. Evitar sombra do próprio celular sobre a camisa (fotografar com a janela de lado, não atrás de você).
+- **Celular:** paralelo à camisa, tela virada para baixo, à altura suficiente para a camisa ocupar uns 80% do quadro com margem nos quatro lados. Use a lente 2x, se tiver, para reduzir a distorção das bordas. Sem modo retrato, sem filtro.
+- **Preparação:** esticar as dobras com a mão; passar se a camisa estiver muito amassada (sem ferro sobre estampa e número).
+- **Ângulos:** sempre **frente** e **costas**, na mesma posição (virar a camisa no lugar). Detalhes opcionais, de perto: escudo, etiqueta interna (tamanho e código), patches, gola, nome e número, autógrafo.
+- **Depois:** remover o fundo da frente e das costas; os detalhes podem ficar com fundo (aparecem na ficha, não na arara).
+
+---
+
+## 3.5 Silhueta genérica
+
+Parte da silhueta de `prototipos/comum.js`, que já cumpre a regra: é um molde único, desenhado por nós, que só muda de cor e de padrão.
+
+### Anatomia
+
+| Parte | Cor |
+|---|---|
+| Corpo | cor 1 |
+| Padrão (listras, faixa, metade) | cor 2, alternando com a cor 3 quando houver |
+| Mangas | cor 2; na `faixa-peito`, cor 1 (as mangas seguem o corpo) |
+| Punhos | a cor que não estiver na manga, entre a 1 e a 2 |
+| Gola | cor 2 |
+| Contorno | linha fina e neutra (`--contorno-camisa`), para camisa branca não sumir na placa clara nem preta na escura |
+| Costas | gola mais rasa; `personalizacao.nome` e `numero` em fonte genérica sem serifa, na cor 2 se ela contrastar 3:1 com o corpo, senão preto ou branco |
+
+### Padrões
+
+`liso`, `listras-verticais`, `listras-horizontais`, `faixa-peito`, `faixa-diagonal`, `metade`. São motivos usados por dezenas de clubes; nenhum identifica um clube sozinho.
+
+### O que a silhueta não tem, por regra
+
+- Escudo, logotipo de fabricante, patrocinador, estrelas, frisos ou golas específicas de um modelo.
+- Fonte de número que imite a tipografia oficial de um clube ou fabricante.
+- Variações de corte por modelo de camisa. Um molde só, sempre.
+
+### A `faixa-peito`
+
+Com as cores do São Paulo, a faixa no peito lembra a camisa do clube. Minha leitura é que isso respeita a regra: a faixa horizontal é um motivo genérico (vários clubes usam), e o que lembra o São Paulo é a combinação de cores, que é exatamente o dado que a silhueta deve mostrar. Ela não leva escudo, as estrelas, nem a proporção exata da faixa real. O mesmo raciocínio vale para a `faixa-diagonal`. Preciso que você confirme.
+
+### Mudanças em relação ao protótipo
+
+- **Manga longa:** com `manga: longa`, as mangas se estendem até o punho; com `sem-manga`, somem. O campo já está no esquema.
+- **Gerada no build:** vira um componente Astro que escreve o SVG direto no HTML. Sem JavaScript, aparece mesmo antes de os scripts carregarem.
+- **Ids únicos:** o recorte do padrão usa `clipPath` com id; no protótipo o id vem de um contador global, no build sai do slug da camisa.
+- **Acessibilidade:** mantém o rótulo "Silhueta da camisa {clube} {temporada}" quando a silhueta substitui a foto, e fica oculta para leitores de tela quando é decorativa (cabide vazio da lista de desejos já tem o texto na etiqueta).
+- **Lista de desejos:** mesma silhueta, em cinza e transparente, como no protótipo.
