@@ -1,0 +1,50 @@
+# Para quem copiou o projeto: apaga as camisas e os clubes do Armário original pelo site do
+# GitHub, sem instalar nada. Roda só à mão (Actions → Começar do zero → Run workflow) e
+# nunca no repositório original. Depois de apagar, publica o site de novo.
+name: Começar do zero
+
+on:
+  workflow_dispatch:
+    inputs:
+      clubes:
+        description: Quais clubes manter
+        type: choice
+        options: [exemplos, nenhum, todos]
+        default: exemplos
+      confirmacao:
+        description: Para confirmar, digite APAGAR
+        required: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  limpar:
+    if: github.repository != 'gaegrinberg/armario-digital'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conferir a confirmação
+        if: inputs.confirmacao != 'APAGAR'
+        run: |
+          echo "::error::Digite APAGAR no campo de confirmação. Nada foi apagado."
+          exit 1
+
+      - uses: actions/checkout@v5
+
+      - name: Apagar
+        env:
+          CLUBES: ${{ inputs.clubes }}
+        run: |
+          python3 scripts/comecar-do-zero.py --clubes "$CLUBES" --sim
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A src/content public
+          git diff --cached --quiet || git commit -m "Começa a coleção do zero"
+          git push
+
+      # Um push feito pelo Actions não dispara outro workflow; a publicação é pedida aqui
+      - name: Publicar o site
+        run: gh workflow run site.yml --ref "${{ github.ref_name }}"
+        env:
+          GH_TOKEN: ${{ github.token }}

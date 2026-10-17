@@ -6,6 +6,7 @@ import Cabide from '../components/Cabide.astro';
 import { CONFIG } from '../config';
 import { ARARA_GRINGAS, ARARA_SELECOES, CORES, REGIOES, UFS } from '../opcoes';
 import { porTemporada, todasAsCamisas, type Camisa } from '../lib/camisas';
+import { link } from '../lib/link';
 
 const camisas = [...(await todasAsCamisas())].sort(porTemporada);
 const colecao = camisas.filter((c) => c.status === 'colecao');
@@ -46,7 +47,7 @@ let primeiro = 0;
 <Base atual="arara">
   <header class="topo">
     <div class="topo-texto">
-      <h1>Armário Digital</h1>
+      <h1>{CONFIG.titulo}</h1>
       <p class="resumo">
         {[
           plural(colecao.length, 'camisa', 'camisas'),
@@ -135,7 +136,11 @@ let primeiro = 0;
         </section>
       );
     })}
-    <p class="vazio" id="nada" hidden>Nenhuma camisa encontrada.</p>
+    <p class="vazio" id="nada" hidden>
+      {camisas.length ? 'Nenhuma camisa encontrada.' : (
+        <>O armário ainda está vazio. Cadastre a primeira camisa em <a href={link('admin/')}>/admin/</a>.</>
+      )}
+    </p>
   </div>
 </Base>
 
