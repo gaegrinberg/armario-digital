@@ -15,7 +15,8 @@ decisões de design e arquitetura em [`docs/`](docs/).
 ### Pelo celular (CMS)
 
 1. Abra <https://gaegrinberg.github.io/armario-digital/admin/>.
-2. Na primeira vez, toque em **Sign In with Token** e cole um token do GitHub (ver abaixo).
+2. Na primeira vez, toque em **Entrar Usando Token de Acesso** e cole um token do GitHub
+   (ver abaixo).
 3. Se o clube ainda não existe, cadastre-o antes em **Clubes**. Clube brasileiro precisa
    do estado (UF), que define a arara da região.
 4. Em **Camisas**, toque em **New** e preencha clube, temporada, tipo e cores (de 1 a 3, a
