@@ -20,7 +20,13 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 
 - Campo `uf` no esquema; a região é derivada da UF.
 - Padrão de silhueta `faixa-peito` (já está no protótipo). Confirmar com o dono que ele respeita a regra da silhueta genérica.
-- A arara depende de fotos com fundo removido ou fundo uniforme: decidir na Etapa 3.4.
+- A arara depende de fotos com fundo removido ou fundo uniforme: decidir na Etapa 3.4. Teste de 17/10/2026: as fotos reais têm parede, rodapé e interruptor, então o fundo precisa ser removido. O `rembg` com o modelo `birefnet-general-lite` recortou bem até as camisas brancas (cerca de 15 s por foto em CPU, a 1500 px). O `isnet-general-use` deixou as brancas translúcidas e foi descartado. Ponto aberto: o modelo às vezes mantém o cabide real e às vezes o remove.
+
+## Fotos
+
+- Originais em `Camisas/` (fora do Git, via `.gitignore`): 63 fotos de 32 camisas, tiradas em 16/10/2026. Os nomes dos arquivos não seguem a ordem frente/verso, então os pares precisam ser montados olhando as fotos.
+- Pendências do dono: fotografar o verso do Santos (foto `20261017_000314`) e as camisas que ainda faltam.
+- A camisa vermelha das fotos `20261017_000603` e `20261017_000616` é do Sergipe.
 
 ## Como trabalhar
 
