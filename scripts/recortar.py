@@ -25,6 +25,7 @@ MODELO = "birefnet-general-lite"
 LADO_MAIOR = 1500       # px: o modelo trabalha bem nesse tamanho e o zoom do site usa ~1300
 ABERTURA = 31           # px: remove o arame do cabide (mais fino que isso) no terço de cima
 CORTE_CONTRASTE = 0.5   # % de pixels da camisa ignorados em cada ponta no ajuste de exposição
+GANHO_MAXIMO = 1.5      # quanto o ajuste de exposição pode clarear, no máximo
 QUALIDADE = 88
 
 
@@ -95,7 +96,9 @@ def ajustar_exposicao(rgb, alfa):
     baixo, alto = np.percentile(camisa, [CORTE_CONTRASTE, 100 - CORTE_CONTRASTE])
     if alto - baixo < 10:
         return rgb
-    esticado = (rgb.astype(np.float32) - baixo) * (255.0 / (alto - baixo))
+    # O ganho tem limite: numa camisa toda preta, esticar até 255 transformaria o preto em cinza
+    ganho = min(255.0 / (alto - baixo), GANHO_MAXIMO)
+    esticado = (rgb.astype(np.float32) - baixo) * ganho
     return np.clip(esticado, 0, 255).astype(np.uint8)
 
 
@@ -151,10 +154,10 @@ def main(argumentos):
         try:
             destino = recortar(foto, sessao)
             kb = destino.stat().st_size // 1024
-            print(f"[{i}/{len(pendentes)}] {nome} → {destino.name} ({kb} KB, {time.time() - inicio:.0f} s)")
+            print(f"[{i}/{len(pendentes)}] {nome} → {destino.name} ({kb} KB, {time.time() - inicio:.0f} s)", flush=True)
         except Exception as erro:  # uma foto ruim não pode travar as outras
             erros += 1
-            print(f"[{i}/{len(pendentes)}] {nome}: ERRO {erro}", file=sys.stderr)
+            print(f"[{i}/{len(pendentes)}] {nome}: ERRO {erro}", file=sys.stderr, flush=True)
     return 1 if erros else 0
 
 
