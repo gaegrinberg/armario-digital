@@ -6,25 +6,23 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 
 - **Etapa 1 (pesquisa): aprovada.** Ver `docs/referencias.md`. A síntese da primeira rodada vale para a v1; a segunda rodada, no fim do arquivo, traz as referências brasileiras.
 - **Etapa 2 (design): aprovada.** A direção escolhida é a **Arara do Brasil**, descrita na última seção de `docs/design.md`. O protótipo é `prototipos/arara.html`. Os protótipos museu e álbum ficam só como histórico, mas a grade do museu pode virar a visão "ver em grade".
-- **Etapa 3 (arquitetura): no Checkpoint 3, aguardando aprovação.** Ver `docs/arquitetura.md`, que termina com 5 perguntas para o dono. Recomendações: Astro, Sveltia CMS com token pessoal, rembg/birefnet no GitHub Actions e cores escolhidas numa paleta fixa.
-- **Próximo passo depois da aprovação: Etapa 4** (primeira versão).
+- **Etapa 3 (arquitetura): respondida em 17/10/2026.** Ver `docs/arquitetura.md`, com as decisões no fim. Stack: Astro, Sveltia CMS com token pessoal, rembg/birefnet no GitHub Actions e cores escolhidas numa paleta fixa de 13.
+- **Próximo passo: Etapa 4** (primeira versão). Confirmar com o dono antes de começar.
 
 ## Decisões já tomadas pelo dono
 
 - A coleção é quase toda de clubes brasileiros e quase toda da última década. **Não separar por década.**
-- **Uma arara por região do Brasil** (Norte, Nordeste, Centro-Oeste, Sudeste, Sul). Camisas estrangeiras vão para "Gringas".
+- **Uma arara por região do Brasil** (Norte, Nordeste, Centro-Oeste, Sudeste, Sul). Seleções (inclusive a brasileira) ficam numa arara própria, **"Seleções"**. Clubes estrangeiros vão para **"Gringas"**.
 - **São Paulo FC** é o time do coração: ganha uma arara própria, em destaque, dentro do Sudeste. Deve vir de uma configuração (`timeDoCoracao`), não ficar fixo no código.
 - Lista de desejos como **cabides vazios** com etiqueta "procura-se", dentro da arara da região.
 - O dono achou a primeira versão da arara genérica. Prefere soluções originais, com identidade brasileira, a padrões comuns de catálogo.
+- Camisas de outros esportes entram na coleção, com o campo `esporte` (a da Índia é de críquete).
+- Silhueta `faixa-peito` aprovada como genérica.
+- Mais adiante (Etapa 5), um **mapa-múndi com zoom até a cidade** de cada camisa (capital, para seleções). O clube guarda `cidade` e `coordenadas` desde a v1.
 
-## Propostas para validar na Etapa 3
+## Fotos e recorte
 
-- Campo `uf` no esquema; a região é derivada da UF.
-- Padrão de silhueta `faixa-peito` (já está no protótipo). Confirmar com o dono que ele respeita a regra da silhueta genérica.
-- A arara depende de fotos com fundo removido ou fundo uniforme: decidir na Etapa 3.4. Teste de 17/10/2026: as fotos reais têm parede, rodapé e interruptor, então o fundo precisa ser removido. O `rembg` com o modelo `birefnet-general-lite` recortou bem até as camisas brancas (cerca de 15 s por foto em CPU, a 1500 px). O `isnet-general-use` deixou as brancas translúcidas e foi descartado. O cabide é removido num pós-processamento (abertura morfológica no terço de cima), detalhado em `docs/arquitetura.md` 3.4.
-
-## Fotos
-
+- Teste de 17/10/2026: o fundo precisa ser removido, porque as fotos têm parede, rodapé e interruptor. O `rembg` com o modelo `birefnet-general-lite` recorta bem até as camisas brancas (cerca de 15 s por foto em CPU, a 1500 px). O cabide sai num pós-processamento e a exposição é ajustada por autocontraste. Detalhes em `docs/arquitetura.md` 3.4.
 - Originais em `Camisas/` (fora do Git, via `.gitignore`): 63 fotos de 32 camisas, tiradas em 16/10/2026. Os nomes dos arquivos não seguem a ordem frente/verso, então os pares precisam ser montados olhando as fotos.
 - Pendências do dono: fotografar o verso do Santos (foto `20261017_000314`) e as camisas que ainda faltam.
 - A camisa vermelha das fotos `20261017_000603` e `20261017_000616` é do Sergipe.

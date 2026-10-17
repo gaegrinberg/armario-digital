@@ -30,8 +30,18 @@ As camisas apontam para um clube em vez de repetir país, UF e liga em cada regi
 | `pais` | texto | sim | "Brasil", "Uruguai"… |
 | `uf` | uma das 27 siglas | só para clube brasileiro | O build falha se um clube do Brasil ficar sem UF. |
 | `liga` | texto | não | Liga ou confederação, como "Brasileirão Série A" ou "CONMEBOL". |
+| `cidade` | texto | sim | Cidade do clube. Para seleção, a capital do país. |
+| `coordenadas` | latitude e longitude | não | Da cidade. Prepara o mapa-múndi da Etapa 5 e eu preencho na importação. Dá para deixar vazio no celular e completar depois. |
 
-A **região** é derivada da UF e nunca é digitada. Clube ou seleção de fora do Brasil vai para a arara "Gringas". O `timeDoCoracao` da configuração do site aponta para o id de um clube (`sao-paulo`).
+**Em qual arara cada camisa fica:**
+
+| Equipe | Arara |
+|---|---|
+| Clube brasileiro | A da região, derivada da UF. |
+| Seleção, inclusive a brasileira | **"Seleções"**: Brasil, Senegal, Uruguai, Índia, Coreia e Azerbaijão. |
+| Clube estrangeiro | "Gringas". |
+
+O `timeDoCoracao` da configuração do site aponta para o id de um clube (`sao-paulo`).
 
 **Camisa** (`src/content/camisas/sao-paulo-2019-titular/index.md`, com as fotos na mesma pasta):
 
@@ -41,6 +51,7 @@ A **região** é derivada da UF e nunca é digitada. Clube ou seleção de fora 
 | `clube` | referência a um clube | sim | |
 | `temporada` | texto no formato `2019` ou `2019/20` | sim | Validado por expressão regular. |
 | `tipo` | `titular`, `reserva`, `terceira`, `goleiro`, `treino`, `pre-jogo`, `comemorativa`, `passeio` | sim | "Passeio" cobre camisas polo de viagem, como a do Azerbaijão. |
+| `esporte` | texto | não | Padrão `futebol`. Quando é outro (a camisa da Índia é de `críquete`), a etiqueta e a ficha mostram o esporte. |
 | `retro` | sim/não | não | Para relançamentos, como a São Paulo Cirio/Penalty. Assim um relançamento não é confundido com a camisa original da época. |
 | `versao` | `torcedor`, `jogador`, `nao-sei` | não | Padrão `torcedor`. |
 | `manga` | `curta`, `longa` | não | Padrão `curta`. |
@@ -209,10 +220,12 @@ Regras para a silhueta continuar genérica: sem escudo, sem logo de fabricante, 
 
 ---
 
-## Perguntas para você no Checkpoint 3
+## Decisões do Checkpoint 3 (17/10/2026)
 
-1. **Faixa no peito:** o padrão `faixa-peito` respeita a regra da silhueta genérica? Ou prefere que as camisas do São Paulo usem `liso`?
-2. **Seleção Brasileira:** a camisa amarela do Brasil (fotos 35 e 36) não tem UF. Ela vai para uma arara própria "Seleção", que hoje teria uma camisa só, ou fica junto das Gringas numa arara chamada "Seleções e gringas"?
-3. **Camisa da Índia:** é de críquete. Entra na coleção normalmente, ou fica de fora por não ser de futebol?
-4. **Paleta de 13 cores com escolha manual:** está bom?
-5. **Sveltia CMS com token:** concorda com o login por token pessoal colado uma vez em cada aparelho?
+1. **Faixa no peito:** aprovada como padrão genérico, inclusive para o São Paulo.
+2. **Seleções:** ganham uma arara própria, "Seleções", com todas as seleções, inclusive a brasileira. "Gringas" fica só para clubes estrangeiros.
+3. **Camisa da Índia (críquete):** entra na coleção, com o campo `esporte` indicando o esporte.
+4. **Cores:** escolha manual numa paleta fixa de 13 cores.
+5. **Login do CMS:** token pessoal do GitHub, restrito a este repositório.
+
+Acréscimo para depois da v1: um **mapa-múndi com zoom até a cidade** de cada camisa (capital, no caso das seleções). Ele foi registrado na Etapa 5 do plano. Por isso o clube já guarda `cidade` e `coordenadas` desde a v1.

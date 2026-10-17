@@ -146,7 +146,7 @@ Antes de considerar a etapa concluída, verifique: build sem erros, site funcion
 
 Depois que a primeira versão estiver em uso, vamos priorizar juntos entre estas ideias (e as que surgirem na pesquisa):
 
-- **Mapa** com os países e clubes representados.
+- **Mapa-múndi** com os países e clubes representados, com zoom até a cidade de origem de cada camisa (a capital, no caso das seleções). Os dados (`cidade` e `coordenadas` do clube) são coletados desde a v1. A decidir: de onde vem o mapa de fundo, se de um serviço externo de mapas (como o OpenStreetMap) ou de um mapa próprio em SVG, que é mais leve mas limita o zoom.
 - **Linha do tempo** por temporada.
 - **Visão por cor**, organizando a coleção como um degradê.
 - **Visão armário**, com as camisas penduradas em cabides e rolagem horizontal.
