@@ -55,7 +55,8 @@ O mapa precisa de um fundo, e são duas opções:
 
 Uma consequência: várias cidades têm mais de um clube (Rio de Janeiro tem quatro; São Paulo, Recife, Porto Alegre e Belo Horizonte têm dois). Por isso o marcador fica na cidade e abre a lista das camisas de lá, em vez de vários marcadores empilhados no mesmo ponto.
 
-## Para decidir
+## Decisões do dono (17/10/2026)
 
-1. Quais ideias entram, e em que ordem. Minha sugestão: 1, 2, 3 e 4 (parte simples), nessa ordem.
-2. O fundo do mapa: OpenStreetMap ou SVG próprio.
+1. **Todas as ideias aprovadas**, com as recomendações da tabela: o mapa usa **OpenStreetMap com Leaflet**; comparação, linha do tempo e histórias ficam para depois.
+2. **Ideia nova, já feita:** o mapa de quadradinhos da página inicial passou a lembrar mais o contorno do Brasil, sem perder as linhas retas. A grade foi de 6 x 8 para 10 x 10, e os estados grandes ocupam mais de um quadrado (Amazonas 4 x 2, Pará e Mato Grosso 3 x 2, Bahia 2 x 2). Aparecem o Norte largo com Roraima e Amapá em cima, a ponta do Nordeste, o litoral descendo para o sudoeste e o Sul estreito. As posições ficam em `UFS`, em `src/opcoes.ts`.
+3. O resto (mapa com zoom, relacionadas, camisa do dia, estatísticas e arara do degradê) fica para outras sessões.
