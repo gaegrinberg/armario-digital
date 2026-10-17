@@ -57,9 +57,9 @@ let primeiro = 0;
     </div>
     <figure class="mapa">
       <div class="mapa-grade">
-        {Object.entries(UFS).map(([uf, { nome, regiao, col, lin }]) => {
+        {Object.entries(UFS).map(([uf, { nome, regiao, col, lin, larg = 1, alt = 1 }]) => {
           const n = porUf.get(uf) ?? 0;
-          const pos = `grid-column:${col + 1};grid-row:${lin + 1}`;
+          const pos = `grid-column:${col + 1} / span ${larg};grid-row:${lin + 1} / span ${alt}`;
           return n ? (
             <a class="uf" href={`#regiao-${slug(regiao)}`} data-nivel={nivel(n)} style={pos}
                aria-label={`${nome}: ${plural(n, 'camisa', 'camisas')}. Ir para ${regiao}`} title={`${nome} · ${n}`}>{uf}</a>
@@ -150,19 +150,21 @@ let primeiro = 0;
 
   .mapa { margin: 0; flex: none; }
   .mapa-grade {
-    --lado: 26px;
-    display: grid; gap: 3px;
-    grid-template-columns: repeat(6, var(--lado)); grid-template-rows: repeat(8, var(--lado));
+    --lado: 19px;
+    display: grid; gap: 2px;
+    grid-template-columns: repeat(10, var(--lado)); grid-template-rows: repeat(10, var(--lado));
   }
-  @media (min-width: 600px) { .mapa-grade { --lado: 34px; } }
+  @media (min-width: 400px) { .mapa-grade { --lado: 21px; } }
+  @media (min-width: 600px) { .mapa-grade { --lado: 28px; gap: 3px; } }
   .uf {
-    display: grid; place-items: center; border-radius: 4px; text-decoration: none;
-    font: 600 0.75rem/1 var(--fonte-titulo); letter-spacing: 0.02em;
+    display: grid; place-items: center; border-radius: 3px; text-decoration: none;
+    font: 600 0.625rem/1 var(--fonte-titulo); letter-spacing: 0.02em;
     background: var(--placa); color: var(--texto-2);
   }
   .uf[data-nivel="1"] { background: color-mix(in srgb, var(--acento) 28%, var(--superficie)); color: var(--texto); }
   .uf[data-nivel="2"] { background: color-mix(in srgb, var(--acento) 55%, var(--superficie)); color: var(--texto); }
   .uf[data-nivel="3"] { background: var(--acento); color: var(--sobre-acento); }
+  @media (min-width: 600px) { .uf { font-size: 0.75rem; border-radius: 4px; } }
   a.uf:hover { outline: 2px solid var(--texto); outline-offset: 1px; }
   .mapa figcaption { margin-top: 6px; color: var(--texto-2); font-size: 0.75rem; text-align: right; }
 

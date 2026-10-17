@@ -75,35 +75,37 @@ export type Regiao = (typeof REGIOES)[number];
 export const ARARA_SELECOES = 'Seleções';
 export const ARARA_GRINGAS = 'Gringas';
 
-// Cada UF: nome, região do IBGE e posição [coluna, linha] no mapa de quadradinhos
-export const UFS: Record<string, { nome: string; regiao: Regiao; col: number; lin: number }> = {
-  RR: { nome: 'Roraima', regiao: 'Norte', col: 1, lin: 0 },
-  AP: { nome: 'Amapá', regiao: 'Norte', col: 3, lin: 0 },
-  AM: { nome: 'Amazonas', regiao: 'Norte', col: 1, lin: 1 },
-  PA: { nome: 'Pará', regiao: 'Norte', col: 2, lin: 1 },
-  MA: { nome: 'Maranhão', regiao: 'Nordeste', col: 3, lin: 1 },
-  CE: { nome: 'Ceará', regiao: 'Nordeste', col: 4, lin: 1 },
-  RN: { nome: 'Rio Grande do Norte', regiao: 'Nordeste', col: 5, lin: 1 },
-  AC: { nome: 'Acre', regiao: 'Norte', col: 0, lin: 2 },
-  RO: { nome: 'Rondônia', regiao: 'Norte', col: 1, lin: 2 },
-  TO: { nome: 'Tocantins', regiao: 'Norte', col: 2, lin: 2 },
-  PI: { nome: 'Piauí', regiao: 'Nordeste', col: 3, lin: 2 },
-  PE: { nome: 'Pernambuco', regiao: 'Nordeste', col: 4, lin: 2 },
-  PB: { nome: 'Paraíba', regiao: 'Nordeste', col: 5, lin: 2 },
-  MT: { nome: 'Mato Grosso', regiao: 'Centro-Oeste', col: 1, lin: 3 },
-  GO: { nome: 'Goiás', regiao: 'Centro-Oeste', col: 2, lin: 3 },
-  BA: { nome: 'Bahia', regiao: 'Nordeste', col: 3, lin: 3 },
-  SE: { nome: 'Sergipe', regiao: 'Nordeste', col: 4, lin: 3 },
-  AL: { nome: 'Alagoas', regiao: 'Nordeste', col: 5, lin: 3 },
-  MS: { nome: 'Mato Grosso do Sul', regiao: 'Centro-Oeste', col: 1, lin: 4 },
-  DF: { nome: 'Distrito Federal', regiao: 'Centro-Oeste', col: 2, lin: 4 },
-  MG: { nome: 'Minas Gerais', regiao: 'Sudeste', col: 3, lin: 4 },
-  ES: { nome: 'Espírito Santo', regiao: 'Sudeste', col: 4, lin: 4 },
-  PR: { nome: 'Paraná', regiao: 'Sul', col: 1, lin: 5 },
-  SP: { nome: 'São Paulo', regiao: 'Sudeste', col: 2, lin: 5 },
-  RJ: { nome: 'Rio de Janeiro', regiao: 'Sudeste', col: 3, lin: 5 },
-  SC: { nome: 'Santa Catarina', regiao: 'Sul', col: 1, lin: 6 },
-  RS: { nome: 'Rio Grande do Sul', regiao: 'Sul', col: 1, lin: 7 },
+// Cada UF: nome, região do IBGE e lugar no mapa de quadradinhos (grade de 10 x 10).
+// col e lin são o canto de cima à esquerda; os estados grandes ocupam mais de um quadrado
+// (larg x alt), para o desenho lembrar o contorno do Brasil sem sair das linhas retas.
+export const UFS: Record<string, { nome: string; regiao: Regiao; col: number; lin: number; larg?: number; alt?: number }> = {
+  RR: { nome: 'Roraima', regiao: 'Norte', col: 2, lin: 0, larg: 2 },
+  AP: { nome: 'Amapá', regiao: 'Norte', col: 5, lin: 0 },
+  AM: { nome: 'Amazonas', regiao: 'Norte', col: 0, lin: 1, larg: 4, alt: 2 },
+  PA: { nome: 'Pará', regiao: 'Norte', col: 4, lin: 1, larg: 3, alt: 2 },
+  MA: { nome: 'Maranhão', regiao: 'Nordeste', col: 7, lin: 1, alt: 2 },
+  CE: { nome: 'Ceará', regiao: 'Nordeste', col: 8, lin: 1 },
+  RN: { nome: 'Rio Grande do Norte', regiao: 'Nordeste', col: 9, lin: 1 },
+  PE: { nome: 'Pernambuco', regiao: 'Nordeste', col: 8, lin: 2 },
+  PB: { nome: 'Paraíba', regiao: 'Nordeste', col: 9, lin: 2 },
+  AC: { nome: 'Acre', regiao: 'Norte', col: 0, lin: 3, larg: 2 },
+  RO: { nome: 'Rondônia', regiao: 'Norte', col: 2, lin: 3, alt: 2 },
+  MT: { nome: 'Mato Grosso', regiao: 'Centro-Oeste', col: 3, lin: 3, larg: 3, alt: 2 },
+  TO: { nome: 'Tocantins', regiao: 'Norte', col: 6, lin: 3, alt: 2 },
+  PI: { nome: 'Piauí', regiao: 'Nordeste', col: 7, lin: 3 },
+  SE: { nome: 'Sergipe', regiao: 'Nordeste', col: 8, lin: 3 },
+  AL: { nome: 'Alagoas', regiao: 'Nordeste', col: 9, lin: 3 },
+  BA: { nome: 'Bahia', regiao: 'Nordeste', col: 7, lin: 4, larg: 2, alt: 2 },
+  MS: { nome: 'Mato Grosso do Sul', regiao: 'Centro-Oeste', col: 4, lin: 5, alt: 2 },
+  GO: { nome: 'Goiás', regiao: 'Centro-Oeste', col: 5, lin: 5, alt: 2 },
+  DF: { nome: 'Distrito Federal', regiao: 'Centro-Oeste', col: 6, lin: 5 },
+  MG: { nome: 'Minas Gerais', regiao: 'Sudeste', col: 6, lin: 6, larg: 2 },
+  ES: { nome: 'Espírito Santo', regiao: 'Sudeste', col: 8, lin: 6 },
+  PR: { nome: 'Paraná', regiao: 'Sul', col: 4, lin: 7 },
+  SP: { nome: 'São Paulo', regiao: 'Sudeste', col: 5, lin: 7, larg: 2 },
+  RJ: { nome: 'Rio de Janeiro', regiao: 'Sudeste', col: 7, lin: 7 },
+  SC: { nome: 'Santa Catarina', regiao: 'Sul', col: 4, lin: 8 },
+  RS: { nome: 'Rio Grande do Sul', regiao: 'Sul', col: 3, lin: 9, larg: 2 },
 };
 
 export const chaves = <T extends object>(o: T) => Object.keys(o) as [keyof T & string, ...(keyof T & string)[]];
