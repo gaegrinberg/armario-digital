@@ -75,3 +75,13 @@ Página `/mapa/` (`src/pages/mapa.astro`), com "Mapa" no menu.
 - Para entrar no mapa, o clube precisa ter `coordenadas`. Um clube sem elas aparece numa nota no fim da página.
 
 Ajuste no topo de todas as páginas: com cinco botões, o menu quebrava em três linhas no celular. A chave de tema foi para a linha do título.
+
+## Feito: relacionadas na página da camisa (17/10/2026)
+
+No fim da página de cada camisa há uma arara curta, **"Penduradas perto"**, com até 6 camisas da coleção. Cada etiqueta diz por que a camisa está ali, com os dois motivos de mais peso.
+
+- **Pontos de cada ligação** (`relacionadas`, em `src/lib/camisas.ts`): mesmo clube ou seleção 12, mesma cidade 5 ("Também do Rio de Janeiro"), mesmo ano de temporada 4 ("Também de 2021", e 2021/22 conta como 2021), mesmo fabricante 3 ("Também adidas"), mesmo esporte fora do futebol 3, mesmas cores 3 ou mesma cor principal 2 ("Também em vermelho"), mesma arara 1 e mesmo tipo 1. Entra quem soma 3 pontos ou mais.
+- **De outro clube, no máximo 3.** Sem isso, a página do Juventus da Mooca virava só São Paulo.
+- **Empates** se desfazem por um sorteio fixo, diferente em cada página, para as mesmas camisas não aparecerem em todas.
+- Só entram camisas da coleção, não as da lista de desejos.
+- A arara reaproveita o `Cabide` da página inicial, que ganhou a linha do motivo. A barra acompanha a largura toda sem JavaScript.

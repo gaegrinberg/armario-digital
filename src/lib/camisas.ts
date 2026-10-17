@@ -148,3 +148,58 @@ export function porTemporada(a: Camisa, b: Camisa) {
 
 // Uma cidade pode ter vários clubes; o mapa agrupa por cidade e país
 export const lugarId = (clube: Camisa['clube']) => slug(`${clube.cidade} ${clube.pais}`);
+
+// ---------- Relacionadas ----------
+
+export type Relacionada = { camisa: Camisa; motivos: string[] };
+
+// Pontos de cada ligação entre duas camisas. O motivo de mais peso vai para a etiqueta.
+function ligacoes(a: Camisa, b: Camisa) {
+  const lista: { peso: number; motivo?: string }[] = [];
+  const mesmoClube = a.clubeId === b.clubeId;
+  if (mesmoClube) lista.push({ peso: 12, motivo: a.clube.equipe === 'selecao' ? 'Mesma seleção' : 'Mesmo clube' });
+  else if (lugarId(a.clube) === lugarId(b.clube)) {
+    lista.push({ peso: 5, motivo: `Também ${a.clube.cidade.startsWith('Rio ') ? 'do' : 'de'} ${a.clube.cidade}` });
+  }
+  if (a.temporada.slice(0, 4) === b.temporada.slice(0, 4)) lista.push({ peso: 4, motivo: `Também de ${a.temporada.slice(0, 4)}` });
+  if (a.fabricante && normalizar(a.fabricante) === normalizar(b.fabricante ?? '')) lista.push({ peso: 3, motivo: `Também ${b.fabricante}` });
+  if (a.esporte !== 'futebol' && a.esporte === b.esporte) lista.push({ peso: 3, motivo: `Também de ${a.esporte}` });
+  if ([...a.cores].sort().join() === [...b.cores].sort().join()) lista.push({ peso: 3, motivo: 'Mesmas cores' });
+  else if (a.cores[0] === b.cores[0]) lista.push({ peso: 2, motivo: `Também em ${CORES[a.cores[0]].rotulo.toLowerCase()}` });
+  if (!mesmoClube && a.arara === b.arara) lista.push({ peso: 1, motivo: 'Mesma arara' });
+  if (a.tipo === b.tipo) lista.push({ peso: 1 });
+  return lista;
+}
+
+// Desempate estável, diferente em cada página, para as mesmas camisas não aparecerem sempre
+function sorteio(texto: string) {
+  let h = 2166136261;
+  for (let i = 0; i < texto.length; i++) h = Math.imul(h ^ texto.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+// As camisas da coleção mais ligadas a esta: mesmo clube, cidade, temporada, fabricante e cores.
+// De outro clube, no máximo 3, para a arara não virar só o vizinho de cidade.
+export function relacionadas(c: Camisa, todas: Camisa[], quantas = 6): Relacionada[] {
+  const porClube = new Map<string, number>();
+  return todas
+    .filter((o) => o.id !== c.id && o.status === 'colecao')
+    .map((o) => {
+      const l = ligacoes(c, o).sort((x, y) => y.peso - x.peso);
+      return {
+        camisa: o,
+        pontos: l.reduce((s, x) => s + x.peso, 0),
+        motivos: l.flatMap((x) => (x.motivo ? [x.motivo] : [])).slice(0, 2),
+        sorteio: sorteio(c.id + o.id),
+      };
+    })
+    .filter((r) => r.pontos >= 3)
+    .sort((x, y) => y.pontos - x.pontos || x.sorteio - y.sorteio)
+    .filter((r) => {
+      const n = (porClube.get(r.camisa.clubeId) ?? 0) + 1;
+      porClube.set(r.camisa.clubeId, n);
+      return r.camisa.clubeId === c.clubeId || n <= 3;
+    })
+    .slice(0, quantas)
+    .map(({ camisa, motivos }) => ({ camisa, motivos }));
+}

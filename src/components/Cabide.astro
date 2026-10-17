@@ -8,8 +8,10 @@ import { link } from '../lib/link';
 interface Props {
   camisa: Camisa;
   prioridade?: boolean;
+  // Por que ela aparece aqui (nas relacionadas da página da camisa)
+  motivo?: string;
 }
-const { camisa: c, prioridade } = Astro.props;
+const { camisa: c, prioridade, motivo } = Astro.props;
 const vazio = c.status === 'desejo';
 ---
 <a
@@ -32,6 +34,7 @@ const vazio = c.status === 'desejo';
       {vazio && <span class="procura">Procura-se</span>}
       <strong>{c.clube.nome}</strong>
       <span class="meta">{c.temporada} · {tipoCurto(c)}</span>
+      {motivo && <span class="motivo">{motivo}</span>}
     </span>
   </div>
 </a>
@@ -62,6 +65,11 @@ const vazio = c.status === 'desejo';
 
   .cabide:nth-child(even) .etiqueta { --torto: 2.5deg; }
   .cabide:nth-child(3n) .etiqueta { --torto: -0.5deg; }
+
+  .motivo {
+    display: block; margin-top: 6px; padding-top: 5px; border-top: 1px dashed var(--borda);
+    color: var(--acento); font: 700 0.75rem/1.25 var(--fonte-titulo); letter-spacing: 0.06em; text-transform: uppercase;
+  }
 
   .vazio .camisa :global(.silhueta) { opacity: 0.2; filter: grayscale(1); }
   .vazio .camisa :global(img) { opacity: 0.25; filter: grayscale(1); }
