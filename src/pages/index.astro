@@ -48,8 +48,11 @@ let primeiro = 0;
     <div class="topo-texto">
       <h1>Armário Digital</h1>
       <p class="resumo">
-        {plural(colecao.length, 'camisa', 'camisas')} · {plural(porUf.size, 'estado', 'estados')}
-        · {plural(new Set(colecao.map((c) => c.clube.pais)).size, 'país', 'países')}
+        {[
+          plural(colecao.length, 'camisa', 'camisas'),
+          plural(porUf.size, 'estado', 'estados'),
+          plural(new Set(colecao.map((c) => c.clube.pais)).size, 'país', 'países'),
+        ].join(' · ')}
       </p>
     </div>
     <figure class="mapa">
