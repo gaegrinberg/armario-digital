@@ -10,6 +10,9 @@ tem busca, filtros e ordenação, e cada camisa tem uma página com fotos, hist�
 O plano do projeto está em [`armario-digital-plano.md`](armario-digital-plano.md), e as
 decisões de design e arquitetura em [`docs/`](docs/).
 
+**Quer um armário para a sua coleção?** Siga o guia
+[`COMO-FAZER-O-SEU.md`](COMO-FAZER-O-SEU.md). Não precisa programar.
+
 ## Adicionar uma camisa
 
 ### Pelo celular (CMS)
@@ -79,8 +82,18 @@ formulário do CMS é gerado a partir delas, então mudar uma lista ali muda as 
 
 ### Configurações
 
-[`src/config.ts`](src/config.ts) define o time do coração (`timeDoCoracao`, o id do clube que
-ganha a arara em destaque) e o repositório usado pelo CMS.
+[`src/config.ts`](src/config.ts) define o título do site e o time do coração
+(`timeDoCoracao`, o id do clube que ganha a arara em destaque).
+
+O endereço do site e o repositório onde o CMS grava vêm da variável `GITHUB_REPOSITORY`, que
+o GitHub Actions preenche com `dono/repo`: o site sai em `https://dono.github.io/repo/` (ou na
+raiz, num repositório `dono.github.io`). Fora do Actions, vale `gaegrinberg/armario-digital`;
+para simular outro repositório no computador, defina a variável antes do build. A conta fica
+em [`astro.config.mjs`](astro.config.mjs).
+
+Numa cópia do projeto, `scripts/comecar-do-zero.py` (ou o workflow **Começar do zero**, na
+aba Actions) apaga as camisas e os clubes do Armário original. Ele se recusa a rodar neste
+repositório.
 
 ## Fotos
 
