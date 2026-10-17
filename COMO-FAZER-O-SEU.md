@@ -188,3 +188,8 @@ site.
 **Quero mudar o endereço.** Em **Settings → General**, troque o nome do repositório
 (*Repository name*). Depois, em **Actions → Site → Run workflow**, publique de novo para o
 site passar a sair no endereço novo.
+
+**E a licença?** O código vem com a licença MIT (arquivo `LICENSE`), que permite copiar e
+mudar à vontade. As fotos do Armário original não estão incluídas nela, por isso o passo 5
+as apaga. As suas fotos são suas: se quiser, troque o nome no fim do arquivo `LICENSE`,
+na parte "Fotos fora desta licença", pelo seu.

@@ -161,3 +161,8 @@ GitHub Actions faz, use `npm run build` (o resultado fica em `dist/`) e `npm run
 O workflow [`.github/workflows/site.yml`](.github/workflows/site.yml) roda a cada push na
 `main`: recorta as fotos novas (e faz commit dos recortes), gera o site e publica no GitHub
 Pages. Os protótipos de design continuam em `prototipos/`, fora do site.
+
+## Licença
+
+O código está sob a licença [MIT](LICENSE): pode copiar, mudar e usar à vontade, mantendo o
+aviso de copyright. As **fotos das camisas** ficam fora dela: todos os direitos reservados.
