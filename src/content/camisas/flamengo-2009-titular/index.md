@@ -6,6 +6,7 @@ cores: ["vermelho", "preto"]
 padrao: "listras-horizontais"
 fabricante: "Nike"
 nomeNumero: "ADRIANO 100"
+retro: true
 fotos:
   frente: frente.webp
   verso: verso.webp

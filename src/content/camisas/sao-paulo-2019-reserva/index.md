@@ -2,7 +2,7 @@
 clube: "sao-paulo"
 temporada: "2019"
 tipo: "reserva"
-cores: ["preto", "vermelho", "branco"]
+cores: ["vermelho", "preto", "branco"]
 padrao: "listras-verticais"
 fabricante: "adidas"
 patrocinador: "Banco Inter"
