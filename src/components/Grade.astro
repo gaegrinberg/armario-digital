@@ -1,0 +1,272 @@
+---
+// A coleção (ou a lista de desejos) em grade, com busca, filtros e ordenação.
+// Tudo fica na URL (?tipo=titular&cor=vermelho&ordem=clube), para compartilhar a visão filtrada.
+import FotoCamisa from './FotoCamisa.astro';
+import { CORES, STATUS, TIPOS, VERSOES } from '../opcoes';
+import { chavesDeOrdem, tipoCurto, todasAsCamisas, type Camisa } from '../lib/camisas';
+import { link } from '../lib/link';
+
+interface Props {
+  status: keyof typeof STATUS;
+}
+const { status } = Astro.props;
+const camisas = (await todasAsCamisas()).filter((c) => c.status === status);
+const desejo = status === 'desejo';
+
+// Cada filtro: o valor de cada camisa e como mostrar esse valor
+type Filtro = { nome: string; rotulo: string; valor: (c: Camisa) => string | undefined; mostrar?: (c: Camisa) => string };
+const FILTROS: Filtro[] = [
+  { nome: 'clube', rotulo: 'Clube ou seleção', valor: (c) => c.clubeId, mostrar: (c) => c.clube.nome },
+  { nome: 'arara', rotulo: 'Arara', valor: (c) => c.arara },
+  { nome: 'pais', rotulo: 'País', valor: (c) => c.clube.pais },
+  { nome: 'liga', rotulo: 'Liga', valor: (c) => c.clube.liga },
+  { nome: 'tipo', rotulo: 'Tipo', valor: (c) => c.tipo, mostrar: (c) => TIPOS[c.tipo] },
+  { nome: 'versao', rotulo: 'Versão', valor: (c) => c.versao, mostrar: (c) => VERSOES[c.versao] },
+  { nome: 'fabricante', rotulo: 'Fabricante', valor: (c) => c.fabricante },
+  { nome: 'decada', rotulo: 'Década', valor: (c) => c.decada },
+];
+
+const opcoes = FILTROS.map((f) => {
+  const mapa = new Map<string, { rotulo: string; n: number }>();
+  for (const c of camisas) {
+    const v = f.valor(c);
+    if (!v) continue;
+    const atual = mapa.get(v) ?? { rotulo: f.mostrar ? f.mostrar(c) : v, n: 0 };
+    atual.n++;
+    mapa.set(v, atual);
+  }
+  const lista = [...mapa.entries()].sort((a, b) =>
+    f.nome === 'decada' ? b[0].localeCompare(a[0]) : a[1].rotulo.localeCompare(b[1].rotulo, 'pt'),
+  );
+  return { ...f, lista };
+}).filter((f) => f.lista.length > 1 || f.nome === 'clube');
+
+const coresUsadas = Object.entries(CORES)
+  .map(([cor, info]) => ({ cor, ...info, n: camisas.filter((c) => c.cores.includes(cor as any)).length }))
+  .filter((c) => c.n > 0);
+
+const ORDENS = desejo
+  ? [['temporada', 'Temporada'], ['clube', 'Clube'], ['cor', 'Cor']]
+  : [['aquisicao', 'Data de aquisição'], ['temporada', 'Temporada'], ['clube', 'Clube'], ['cor', 'Cor']];
+---
+<div class="grade-pagina" data-ordem-padrao={ORDENS[0][0]}>
+  <div class="controles">
+    <label class="oculto" for="busca">Buscar</label>
+    <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, país, fabricante, história…" autocomplete="off" />
+
+    <details class="filtros" id="filtros">
+      <summary class="pilula">Filtros <span id="n-filtros"></span></summary>
+      <div class="filtros-corpo">
+        {opcoes.map((f) => (
+          <label class="filtro">
+            <span>{f.rotulo}</span>
+            <select data-filtro={f.nome}>
+              <option value="">Todos</option>
+              {f.lista.map(([valor, { rotulo, n }]) => <option value={valor}>{rotulo} ({n})</option>)}
+            </select>
+          </label>
+        ))}
+        <fieldset class="filtro filtro-cor">
+          <legend>Cor</legend>
+          <div class="amostras">
+            {coresUsadas.map((c) => (
+              <button type="button" class="amostra-botao" data-cor={c.cor} aria-pressed="false" title={`${c.rotulo} (${c.n})`}>
+                <span class="amostra" style={`background:${c.hex}`} />
+                <span>{c.rotulo}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+    </details>
+
+    <div class="ativos" id="ativos"></div>
+
+    <div class="linha-ordem">
+      <span id="contagem" aria-live="polite"></span>
+      <label>Ordenar por
+        <select id="ordem">
+          {ORDENS.map(([v, r]) => <option value={v}>{r}</option>)}
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <ul class="grade" id="grade">
+    {camisas.map((c, i) => {
+      const o = chavesDeOrdem(c);
+      const dados = Object.fromEntries(FILTROS.map((f) => [`data-${f.nome}`, f.valor(c) ?? '']));
+      return (
+        <li class="item" {...dados} data-cores={c.cores.join(' ')} data-busca={c.busca}
+            data-o-aquisicao={o.aquisicao} data-o-temporada={o.temporada} data-o-clube={o.clube} data-o-cor={o.cor}>
+          <a href={link(`camisa/${c.id}/`)}>
+            <div class:list={['placa', { desejo }]}>
+              <FotoCamisa camisa={c} tamanho="miniatura" rotulo={false} prioridade={i < 4} />
+            </div>
+            <div class="legenda">
+              {desejo && <p class="procura">Procura-se</p>}
+              <h2>{c.clube.nome}</h2>
+              <p class="meta">{c.temporada} · {tipoCurto(c)}</p>
+            </div>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+  <p class="vazio" id="nada" hidden>Nenhuma camisa com esses filtros. <a href="?">Limpar filtros</a></p>
+</div>
+
+<style>
+  .controles { display: grid; gap: 12px; margin-top: 16px; }
+
+  .filtros summary { list-style: none; width: fit-content; }
+  .filtros summary::-webkit-details-marker { display: none; }
+  #n-filtros:not(:empty) { margin-left: 0.3em; }
+  .filtros summary::after { content: '▾'; margin-left: 6px; }
+  .filtros[open] summary::after { content: '▴'; }
+  .filtros-corpo {
+    display: grid; gap: 12px; margin-top: 12px; padding: 16px;
+    background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio);
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+  .filtro { display: grid; gap: 4px; min-width: 0; font-size: 0.875rem; color: var(--texto-2); }
+  .filtro select {
+    width: 100%; min-height: 44px; padding: 0 8px; border: 1px solid var(--borda); border-radius: var(--raio);
+    background: var(--fundo); color: var(--texto); font-size: 1rem;
+  }
+  .filtro-cor { grid-column: 1 / -1; margin: 0; padding: 0; border: 0; }
+  .filtro-cor legend { padding: 0; margin-bottom: 4px; }
+  .amostras { display: flex; flex-wrap: wrap; gap: 8px; }
+  .amostra-botao {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px 0 8px;
+    border: 1px solid var(--borda); border-radius: 999px; background: var(--fundo); cursor: pointer; font-size: 0.9375rem;
+  }
+  .amostra-botao[aria-pressed="true"] { border-color: var(--acento); box-shadow: inset 0 0 0 1px var(--acento); font-weight: 600; }
+  .amostra { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--contorno-camisa); }
+
+  .ativos { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ativos:empty { display: none; }
+  .ativos :global(button) {
+    min-height: 40px; padding: 0 12px; border: 1px solid var(--acento); border-radius: 999px;
+    background: color-mix(in srgb, var(--acento) 10%, var(--superficie)); cursor: pointer; font-size: 0.875rem;
+  }
+  .ativos :global(.limpar) { border-color: var(--borda); background: transparent; color: var(--texto-2); }
+
+  .linha-ordem { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; color: var(--texto-2); font-size: 0.9375rem; }
+  .linha-ordem select { min-height: 44px; margin-left: 6px; padding: 0 8px; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); }
+
+  .grade {
+    display: grid; gap: 28px 16px; margin: 20px 0 0; padding: 0; list-style: none;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  }
+  @media (min-width: 760px) { .grade { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 40px 24px; } }
+  .item a { display: block; color: inherit; text-decoration: none; }
+  .placa {
+    display: grid; place-items: center; aspect-ratio: 4 / 5; padding: 10%;
+    background: var(--placa); border-radius: var(--raio); transition: background 0.2s;
+  }
+  .item a:hover .placa { background: color-mix(in srgb, var(--placa) 85%, var(--texto)); }
+  .placa :global(.foto-placa) { aspect-ratio: auto; background: none; border-radius: 2px; max-height: 100%; }
+  .placa :global(.foto-recorte) { max-height: 100%; width: auto; }
+  .placa.desejo :global(.silhueta), .placa.desejo :global(img) { opacity: 0.35; filter: grayscale(1); }
+  .legenda { padding-top: 10px; }
+  .legenda h2 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.125rem; line-height: 1.2; }
+  .legenda .meta { margin: 2px 0 0; color: var(--texto-2); font-size: 0.9375rem; }
+  .procura { margin: 0; color: var(--acento); font: 700 0.8125rem/1.2 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase; }
+</style>
+
+<script>
+  import { normalizar } from '../lib/normalizar';
+
+  const raiz = document.querySelector<HTMLElement>('.grade-pagina')!;
+  const busca = document.getElementById('busca') as HTMLInputElement;
+  const ordem = document.getElementById('ordem') as HTMLSelectElement;
+  const grade = document.getElementById('grade')!;
+  const itens = [...grade.querySelectorAll<HTMLElement>('.item')];
+  const selects = [...document.querySelectorAll<HTMLSelectElement>('[data-filtro]')];
+  const amostras = [...document.querySelectorAll<HTMLButtonElement>('[data-cor]')];
+  const detalhes = document.getElementById('filtros') as HTMLDetailsElement;
+  const padrao = raiz.dataset.ordemPadrao!;
+
+  // Estado inicial vem da URL; valores que não existem na lista são ignorados
+  const params = new URLSearchParams(location.search);
+  busca.value = params.get('q') ?? '';
+  for (const s of selects) {
+    const v = params.get(s.dataset.filtro!);
+    if (v && [...s.options].some((o) => o.value === v)) s.value = v;
+  }
+  let cor = params.get('cor') ?? '';
+  if (!amostras.some((a) => a.dataset.cor === cor)) cor = '';
+  const o = params.get('ordem');
+  ordem.value = o && [...ordem.options].some((x) => x.value === o) ? o : padrao;
+
+  const decrescente = new Set(['aquisicao', 'temporada']);
+
+  function aplicar() {
+    const termo = normalizar(busca.value.trim());
+    const ativos = selects.filter((s) => s.value);
+    let visiveis = 0;
+    for (const item of itens) {
+      const ok =
+        ativos.every((s) => item.dataset[s.dataset.filtro!] === s.value) &&
+        (!cor || item.dataset.cores!.split(' ').includes(cor)) &&
+        (!termo || item.dataset.busca!.includes(termo));
+      item.hidden = !ok;
+      if (ok) visiveis++;
+    }
+
+    // Ordenação: reordena os itens já desenhados
+    const chave = 'o' + ordem.value[0].toUpperCase() + ordem.value.slice(1);
+    const sinal = decrescente.has(ordem.value) ? -1 : 1;
+    itens
+      .slice()
+      .sort((a, b) => sinal * a.dataset[chave]!.localeCompare(b.dataset[chave]!) || a.dataset.oClube!.localeCompare(b.dataset.oClube!))
+      .forEach((i) => grade.append(i));
+
+    for (const a of amostras) a.setAttribute('aria-pressed', String(a.dataset.cor === cor));
+    document.getElementById('contagem')!.textContent = `${visiveis} ${visiveis === 1 ? 'camisa' : 'camisas'}`;
+    document.getElementById('nada')!.hidden = visiveis > 0;
+    const n = ativos.length + (cor ? 1 : 0);
+    document.getElementById('n-filtros')!.textContent = n ? `(${n})` : '';
+
+    // Filtros ativos como etiquetas removíveis
+    const caixa = document.getElementById('ativos')!;
+    caixa.replaceChildren();
+    const etiqueta = (texto: string, limpar: () => void, classe = '') => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = classe;
+      b.textContent = texto;
+      b.addEventListener('click', () => { limpar(); aplicar(); });
+      caixa.append(b);
+    };
+    for (const s of ativos) {
+      const rotulo = s.closest('label')!.querySelector('span')!.textContent;
+      const valor = s.selectedOptions[0].textContent!.replace(/ \(\d+\)$/, '');
+      etiqueta(`${rotulo}: ${valor} ×`, () => { s.value = ''; });
+    }
+    if (cor) {
+      const nome = amostras.find((a) => a.dataset.cor === cor)!.textContent!.trim();
+      etiqueta(`Cor: ${nome} ×`, () => { cor = ''; });
+    }
+    if (n > 1) etiqueta('Limpar tudo', () => { selects.forEach((s) => (s.value = '')); cor = ''; }, 'limpar');
+
+    // URL
+    const url = new URL(location.href);
+    url.search = '';
+    if (termo) url.searchParams.set('q', busca.value.trim());
+    for (const s of ativos) url.searchParams.set(s.dataset.filtro!, s.value);
+    if (cor) url.searchParams.set('cor', cor);
+    if (ordem.value !== padrao) url.searchParams.set('ordem', ordem.value);
+    history.replaceState(null, '', url);
+  }
+
+  busca.addEventListener('input', aplicar);
+  ordem.addEventListener('change', aplicar);
+  for (const s of selects) s.addEventListener('change', aplicar);
+  for (const a of amostras) a.addEventListener('click', () => { cor = cor === a.dataset.cor ? '' : a.dataset.cor!; aplicar(); });
+
+  // No computador o painel de filtros já vem aberto
+  if (matchMedia('(min-width: 760px)').matches) detalhes.open = true;
+  aplicar();
+</script>

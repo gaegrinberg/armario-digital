@@ -1,0 +1,79 @@
+---
+import '../styles/global.css';
+import { CONFIG } from '../config';
+import { todasAsCamisas } from '../lib/camisas';
+import { link } from '../lib/link';
+
+interface Props {
+  titulo?: string;
+  descricao?: string;
+  atual?: 'arara' | 'grade' | 'desejos';
+}
+const { titulo, descricao = 'Coleção pessoal de camisas de futebol.', atual } = Astro.props;
+const exemplos = (await todasAsCamisas()).some((c) => c.tags.includes('exemplo'));
+---
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{titulo ? `${titulo} · ${CONFIG.titulo}` : CONFIG.titulo}</title>
+  <meta name="description" content={descricao} />
+  <link rel="icon" href={link('favicon.svg')} type="image/svg+xml" />
+  <meta name="theme-color" content="#EDEBE6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#121315" media="(prefers-color-scheme: dark)" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Archivo:wght@400;500;600&family=Londrina+Solid:wght@900&display=swap"
+    rel="stylesheet"
+  />
+  <!-- Aplica o tema salvo antes de desenhar a página, para não piscar -->
+  <script is:inline>
+    try { const t = localStorage.getItem('tema'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="pagina">
+    <header class="barra">
+      {/* Na arara o título grande já faz esse papel */}
+      {atual === 'arara' ? <span /> : <a class="marca" href={link('')}>{CONFIG.titulo}</a>}
+      <nav class="nav" aria-label="Seções">
+        <a class="pilula" href={link('')} aria-current={atual === 'arara' ? 'page' : undefined}>Arara</a>
+        <a class="pilula" href={link('grade/')} aria-current={atual === 'grade' ? 'page' : undefined}>Grade</a>
+        <a class="pilula" href={link('desejos/')} aria-current={atual === 'desejos' ? 'page' : undefined}>Desejos</a>
+        <button class="pilula" id="tema" type="button">◐ Auto</button>
+      </nav>
+    </header>
+    <slot />
+    <footer class="rodape">
+      {exemplos && <p>Algumas camisas são exemplos com dados fictícios: clubes reais, mas fabricantes, patrocinadores e histórias inventados.</p>}
+      <p>Fotos do acervo pessoal. Silhuetas genéricas, sem escudos ou marcas.</p>
+    </footer>
+  </div>
+  <script>
+    const TEMAS = [
+      { valor: 'auto', rotulo: 'Auto', nome: 'automático' },
+      { valor: 'light', rotulo: 'Claro', nome: 'claro' },
+      { valor: 'dark', rotulo: 'Escuro', nome: 'escuro' },
+    ];
+    const botao = document.getElementById('tema')!;
+    let atual = 'auto';
+    try { atual = localStorage.getItem('tema') || 'auto'; } catch {}
+    const aplicar = (valor: string) => {
+      if (valor === 'auto') delete document.documentElement.dataset.theme;
+      else document.documentElement.dataset.theme = valor;
+      const tema = TEMAS.find((t) => t.valor === valor) ?? TEMAS[0];
+      botao.textContent = '◐ ' + tema.rotulo;
+      botao.setAttribute('aria-label', `Tema: ${tema.nome}. Toque para trocar.`);
+      try { localStorage.setItem('tema', valor); } catch {}
+    };
+    aplicar(atual);
+    botao.addEventListener('click', () => {
+      const i = TEMAS.findIndex((t) => t.valor === atual);
+      atual = TEMAS[(i + 1) % TEMAS.length].valor;
+      aplicar(atual);
+    });
+  </script>
+</body>
+</html>

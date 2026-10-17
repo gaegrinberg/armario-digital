@@ -1,0 +1,35 @@
+---
+// A imagem de uma camisa, na melhor versão disponível:
+// recorte (fundo transparente) > foto enviada numa placa > silhueta.
+import { Image } from 'astro:assets';
+import Silhueta from './Silhueta.astro';
+import type { Camisa, Foto } from '../lib/camisas';
+
+interface Props {
+  camisa: Camisa;
+  foto?: Foto;
+  lado?: 'frente' | 'verso';
+  tamanho: 'miniatura' | 'pagina';
+  rotulo?: boolean;
+  prioridade?: boolean;
+}
+const { camisa: c, lado = 'frente', tamanho, rotulo = true, prioridade = false } = Astro.props;
+const foto = Astro.props.foto ?? (lado === 'verso' ? c.verso : c.frente);
+
+const MEDIDAS = {
+  // Arara e grade: cabe em 2 colunas numa tela 3x
+  miniatura: { widths: [240, 480], sizes: '(min-width: 760px) 230px, 46vw' },
+  // Página da camisa
+  pagina: { widths: [500, 1000], sizes: '(min-width: 760px) 540px, 100vw' },
+};
+const medida = MEDIDAS[tamanho];
+const alt = rotulo ? `Camisa ${c.clube.nome} ${c.temporada}, ${lado}` : '';
+const carregamento = prioridade ? { loading: 'eager' as const, fetchpriority: 'high' as const } : { loading: 'lazy' as const };
+---
+{foto?.recorte ? (
+  <Image class="foto-recorte" src={foto.recorte} alt={alt} widths={medida.widths} sizes={medida.sizes} format="webp" quality={80} {...carregamento} />
+) : foto ? (
+  <Image class="foto-placa" src={foto.original} alt={alt} widths={medida.widths} sizes={medida.sizes} format="webp" quality={80} {...carregamento} />
+) : (
+  <Silhueta camisa={c} costas={lado === 'verso'} rotulo={rotulo} />
+)}

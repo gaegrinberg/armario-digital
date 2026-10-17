@@ -1,0 +1,273 @@
+---
+// Tela principal: uma arara por região do Brasil, a arara do coração em destaque,
+// depois Seleções e Gringas. Camisas desejadas aparecem como cabides vazios.
+import Base from '../layouts/Base.astro';
+import Cabide from '../components/Cabide.astro';
+import { CONFIG } from '../config';
+import { ARARA_GRINGAS, ARARA_SELECOES, CORES, REGIOES, UFS } from '../opcoes';
+import { porTemporada, todasAsCamisas, type Camisa } from '../lib/camisas';
+
+const camisas = [...(await todasAsCamisas())].sort(porTemporada);
+const colecao = camisas.filter((c) => c.status === 'colecao');
+
+const grupos = new Map<string, Camisa[]>();
+for (const c of camisas) {
+  if (!grupos.has(c.arara)) grupos.set(c.arara, []);
+  grupos.get(c.arara)!.push(c);
+}
+const posicaoFixa = (nome: string) => (nome === ARARA_SELECOES ? 1 : nome === ARARA_GRINGAS ? 2 : 0);
+const conta = (lista: Camisa[]) => lista.filter((c) => c.status === 'colecao').length;
+const araras = [...grupos.entries()].sort(
+  (a, b) =>
+    posicaoFixa(a[0]) - posicaoFixa(b[0]) ||
+    conta(b[1]) - conta(a[1]) ||
+    REGIOES.indexOf(a[0] as any) - REGIOES.indexOf(b[0] as any),
+);
+
+const slug = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+// Mapa de quadradinhos: intensidade pelo número de camisas do estado
+const porUf = new Map<string, number>();
+for (const c of colecao) if (c.clube.uf) porUf.set(c.clube.uf, (porUf.get(c.clube.uf) ?? 0) + 1);
+const nivel = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n < 4 ? 2 : 3);
+
+const coracao = camisas.filter((c) => c.clubeId === CONFIG.timeDoCoracao);
+const nomeCoracao = coracao[0]?.clube.nome;
+const coresCoracao = (coracao.find((c) => c.status === 'colecao') ?? coracao[0])?.cores ?? [];
+
+const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
+const legendaConta = (lista: Camisa[]) => {
+  const tem = conta(lista), procuradas = lista.length - tem;
+  return plural(tem, 'camisa', 'camisas') + (procuradas ? ` · ${plural(procuradas, 'procurada', 'procuradas')}` : '');
+};
+let primeiro = 0;
+---
+<Base atual="arara">
+  <header class="topo">
+    <div class="topo-texto">
+      <h1>Armário Digital</h1>
+      <p class="resumo">
+        {plural(colecao.length, 'camisa', 'camisas')} · {plural(porUf.size, 'estado', 'estados')}
+        · {plural(new Set(colecao.map((c) => c.clube.pais)).size, 'país', 'países')}
+      </p>
+    </div>
+    <figure class="mapa">
+      <div class="mapa-grade">
+        {Object.entries(UFS).map(([uf, { nome, regiao, col, lin }]) => {
+          const n = porUf.get(uf) ?? 0;
+          const pos = `grid-column:${col + 1};grid-row:${lin + 1}`;
+          return n ? (
+            <a class="uf" href={`#regiao-${slug(regiao)}`} data-nivel={nivel(n)} style={pos}
+               aria-label={`${nome}: ${plural(n, 'camisa', 'camisas')}. Ir para ${regiao}`} title={`${nome} · ${n}`}>{uf}</a>
+          ) : (
+            <span class="uf" style={pos} aria-hidden="true">{uf}</span>
+          );
+        })}
+      </div>
+      <figcaption>Camisas por estado</figcaption>
+    </figure>
+  </header>
+
+  <div class="controles">
+    <label class="oculto" for="busca">Buscar</label>
+    <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, estado, história…" autocomplete="off" />
+    <label class="check"><input type="checkbox" id="vazios" checked /> Mostrar cabides vazios (lista de desejos)</label>
+  </div>
+
+  <div id="regioes">
+    {araras.map(([nome, itens]) => {
+      const doCoracao = itens.filter((c) => c.clubeId === CONFIG.timeDoCoracao);
+      const outros = itens.filter((c) => c.clubeId !== CONFIG.timeDoCoracao);
+      const id = `arara-${slug(nome)}`;
+      return (
+        <section class="regiao" id={`regiao-${slug(nome)}`} data-arara>
+          <div class="regiao-topo">
+            <h2 class="placa-pintada" id={`${id}-placa`}>{nome}</h2>
+            <p class="regiao-conta">{legendaConta(itens)}</p>
+            {!doCoracao.length && (
+              <div class="setas" hidden>
+                <button type="button" data-rolar="-1" data-alvo={`${id}-trilho`} aria-label="Voltar na arara">‹</button>
+                <button type="button" data-rolar="1" data-alvo={`${id}-trilho`} aria-label="Avançar na arara">›</button>
+              </div>
+            )}
+          </div>
+          {doCoracao.length > 0 && (
+            <div class="coracao" data-arara>
+              <div class="faixa-clube" aria-hidden="true">
+                {coresCoracao.map((cor) => <span style={`background:${CORES[cor].hex}`} />)}
+              </div>
+              <div class="sub-topo">
+                <div>
+                  <h3 id={`${id}-coracao`}>{nomeCoracao}</h3>
+                  <p class="coracao-legenda">Arara do coração · {legendaConta(doCoracao)}</p>
+                </div>
+                <div class="setas" hidden>
+                  <button type="button" data-rolar="-1" data-alvo={`${id}-coracao-trilho`} aria-label="Voltar na arara">‹</button>
+                  <button type="button" data-rolar="1" data-alvo={`${id}-coracao-trilho`} aria-label="Avançar na arara">›</button>
+                </div>
+              </div>
+              <div class="trilho grande" id={`${id}-coracao-trilho`} role="group" aria-labelledby={`${id}-coracao`}>
+                {doCoracao.map((c) => <Cabide camisa={c} prioridade={primeiro++ < 3} />)}
+              </div>
+            </div>
+          )}
+          {outros.length > 0 && (
+            <div data-arara>
+              {doCoracao.length > 0 && (
+                <div class="sub-topo">
+                  <h3 id={`${id}-outros`}>Outros do {nome}<small>{legendaConta(outros)}</small></h3>
+                  <div class="setas" hidden>
+                    <button type="button" data-rolar="-1" data-alvo={`${id}-trilho`} aria-label="Voltar na arara">‹</button>
+                    <button type="button" data-rolar="1" data-alvo={`${id}-trilho`} aria-label="Avançar na arara">›</button>
+                  </div>
+                </div>
+              )}
+              <div class="trilho" id={`${id}-trilho`} role="group" aria-labelledby={doCoracao.length ? `${id}-outros` : `${id}-placa`}>
+                {outros.map((c) => <Cabide camisa={c} prioridade={primeiro++ < 3} />)}
+              </div>
+            </div>
+          )}
+        </section>
+      );
+    })}
+    <p class="vazio" id="nada" hidden>Nenhuma camisa encontrada.</p>
+  </div>
+</Base>
+
+<style>
+  .topo { display: flex; justify-content: space-between; gap: 12px; padding: 20px 0 16px; }
+  .topo-texto { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  h1 {
+    margin: 0; font-family: var(--fonte-placa); font-weight: 900;
+    font-size: clamp(2.125rem, 9vw, 3.5rem); line-height: 0.95; letter-spacing: 0.01em;
+  }
+  .resumo { margin: 0; color: var(--texto-2); font-size: 0.9375rem; }
+
+  .mapa { margin: 0; flex: none; }
+  .mapa-grade {
+    --lado: 26px;
+    display: grid; gap: 3px;
+    grid-template-columns: repeat(6, var(--lado)); grid-template-rows: repeat(8, var(--lado));
+  }
+  @media (min-width: 600px) { .mapa-grade { --lado: 34px; } }
+  .uf {
+    display: grid; place-items: center; border-radius: 4px; text-decoration: none;
+    font: 600 0.75rem/1 var(--fonte-titulo); letter-spacing: 0.02em;
+    background: var(--placa); color: var(--texto-2);
+  }
+  .uf[data-nivel="1"] { background: color-mix(in srgb, var(--acento) 28%, var(--superficie)); color: var(--texto); }
+  .uf[data-nivel="2"] { background: color-mix(in srgb, var(--acento) 55%, var(--superficie)); color: var(--texto); }
+  .uf[data-nivel="3"] { background: var(--acento); color: var(--sobre-acento); }
+  a.uf:hover { outline: 2px solid var(--texto); outline-offset: 1px; }
+  .mapa figcaption { margin-top: 6px; color: var(--texto-2); font-size: 0.75rem; text-align: right; }
+
+  .controles { display: grid; gap: 8px; }
+
+  .regiao { margin-top: 36px; scroll-margin-top: 12px; }
+  .regiao-topo { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 10px; }
+  .regiao:nth-of-type(even) .placa-pintada { transform: rotate(0.9deg); }
+  .regiao-conta { margin: 0; color: var(--texto-2); font-size: 0.9375rem; }
+  .regiao-topo .setas { margin-left: auto; }
+
+  .sub-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 2px; }
+  .sub-topo h3 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.125rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  .sub-topo h3 small { margin-left: 8px; font-family: var(--fonte-texto); font-weight: 400; font-size: 0.875rem; color: var(--texto-2); letter-spacing: 0; text-transform: none; }
+  .setas { display: flex; gap: 6px; flex: none; }
+  .setas button {
+    width: 44px; height: 44px; border: 1px solid var(--borda); border-radius: 999px;
+    background: var(--superficie); cursor: pointer; font-size: 1.125rem; line-height: 1;
+  }
+
+  .coracao {
+    position: relative; margin-top: 8px; padding: 18px 16px 6px; margin-inline: -16px;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 0%, color-mix(in srgb, var(--superficie) 70%, #fff8e0), transparent),
+      var(--superficie);
+    border-block: 1px solid var(--borda);
+  }
+  @media (min-width: 760px) { .coracao { margin-inline: 0; border: 1px solid var(--borda); border-radius: 10px; padding: 20px 20px 8px; } }
+  .faixa-clube { display: flex; width: 72px; height: 12px; border: 1px solid var(--borda); border-radius: 2px; overflow: hidden; }
+  .faixa-clube span { flex: 1; }
+  .coracao .sub-topo { margin-top: 10px; }
+  .coracao .sub-topo h3 { font-family: var(--fonte-placa); font-weight: 900; font-size: 1.625rem; letter-spacing: 0.01em; text-transform: none; }
+  .coracao-legenda { margin: 2px 0 0; color: var(--texto-2); font-size: 0.875rem; }
+
+  .trilho {
+    position: relative; display: flex; gap: 4px; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding: 0 16px 16px; margin: 0 -16px; scroll-padding: 0 16px; scrollbar-width: thin;
+  }
+  .trilho::before {
+    content: ''; position: absolute; left: 0; top: 7px; height: 5px; border-radius: 3px;
+    width: max(100%, var(--largura-trilho, 100%));
+    background: linear-gradient(var(--metal), color-mix(in srgb, var(--metal) 60%, #000));
+  }
+</style>
+
+<script>
+  import { normalizar } from '../lib/normalizar';
+
+  const busca = document.getElementById('busca') as HTMLInputElement;
+  const vazios = document.getElementById('vazios') as HTMLInputElement;
+  const semMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+  const trilhos = [...document.querySelectorAll<HTMLElement>('.trilho')];
+
+  // A busca fica na URL (?q=), para dar para compartilhar
+  const params = new URLSearchParams(location.search);
+  busca.value = params.get('q') ?? '';
+  vazios.checked = params.get('vazios') !== 'nao';
+
+  function aplicar() {
+    const termo = normalizar(busca.value.trim());
+    for (const c of document.querySelectorAll<HTMLElement>('.cabide')) {
+      c.hidden = (!vazios.checked && c.dataset.status === 'desejo') || (termo !== '' && !c.dataset.busca!.includes(termo));
+    }
+    // Esconde de dentro para fora: trilho, arara e região sem nenhuma camisa visível
+    for (const bloco of [...document.querySelectorAll<HTMLElement>('[data-arara]')].reverse()) {
+      bloco.hidden = !bloco.querySelector('.cabide:not([hidden])');
+    }
+    document.getElementById('nada')!.hidden = !!document.querySelector('.cabide:not([hidden])');
+    const url = new URL(location.href);
+    termo ? url.searchParams.set('q', busca.value.trim()) : url.searchParams.delete('q');
+    vazios.checked ? url.searchParams.delete('vazios') : url.searchParams.set('vazios', 'nao');
+    history.replaceState(null, '', url);
+    medir();
+  }
+
+  // A barra da arara acompanha a largura total; as setas só aparecem quando a arara não cabe
+  function medir() {
+    for (const t of trilhos) t.style.setProperty('--largura-trilho', t.scrollWidth + 'px');
+    for (const g of document.querySelectorAll<HTMLElement>('.setas')) {
+      const t = document.getElementById(g.querySelector<HTMLElement>('[data-alvo]')!.dataset.alvo!)!;
+      g.hidden = t.scrollWidth <= t.clientWidth + 2;
+    }
+  }
+
+  // Balanço: a velocidade da rolagem inclina as camisas; ao parar, elas voltam com uma leve mola
+  for (const trilho of trilhos) {
+    let ultimo = trilho.scrollLeft, parado: number | undefined;
+    trilho.addEventListener('scroll', () => {
+      if (semMovimento.matches) return;
+      const delta = trilho.scrollLeft - ultimo;
+      ultimo = trilho.scrollLeft;
+      trilho.style.setProperty('--balanco', Math.max(-9, Math.min(9, -delta * 0.35)) + 'deg');
+      trilho.classList.add('rolando');
+      clearTimeout(parado);
+      parado = window.setTimeout(() => {
+        trilho.classList.remove('rolando');
+        trilho.style.setProperty('--balanco', '0deg');
+      }, 90);
+    }, { passive: true });
+  }
+
+  document.addEventListener('click', (e) => {
+    const seta = (e.target as Element).closest<HTMLElement>('[data-rolar]');
+    if (!seta) return;
+    const trilho = document.getElementById(seta.dataset.alvo!)!;
+    trilho.scrollBy({ left: Number(seta.dataset.rolar) * trilho.clientWidth * 0.8, behavior: semMovimento.matches ? 'auto' : 'smooth' });
+  });
+
+  busca.addEventListener('input', aplicar);
+  vazios.addEventListener('change', aplicar);
+  addEventListener('resize', medir);
+  aplicar();
+</script>

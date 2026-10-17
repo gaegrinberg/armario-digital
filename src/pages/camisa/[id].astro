@@ -1,0 +1,239 @@
+---
+// Página de uma camisa: fotos (frente, verso, detalhes, zoom), a história e a ficha técnica
+// numa etiqueta costurada.
+import { getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import FotoCamisa from '../../components/FotoCamisa.astro';
+import { CORES, UFS } from '../../opcoes';
+import { formatarData, rotulo, tipoCurto, todasAsCamisas, type Camisa, type Foto } from '../../lib/camisas';
+import { link } from '../../lib/link';
+
+export async function getStaticPaths() {
+  return (await todasAsCamisas()).map((camisa) => ({ params: { id: camisa.id }, props: { camisa } }));
+}
+
+const { camisa: c } = Astro.props as { camisa: Camisa };
+const { Content } = await render(c.entrada);
+const desejo = c.status === 'desejo';
+
+// Versão grande, carregada só ao abrir o zoom
+const zoom = async (f?: Foto) => (f ? (await getImage({ src: f.recorte ?? f.original, format: 'webp', quality: 80 })).src : undefined);
+const zoomFrente = await zoom(c.frente);
+const zoomVerso = await zoom(c.verso);
+const detalhes = await Promise.all(
+  c.detalhes.map(async (f) => ({
+    foto: f,
+    zoom: await zoom(f),
+    miniatura: (await getImage({ src: f.original, width: 240, format: 'webp', quality: 80 })).src,
+  })),
+);
+
+const filtro = (campo: string, valor: string) => link(`${desejo ? 'desejos' : 'grade'}/?${campo}=${encodeURIComponent(valor)}`);
+
+type Linha = { rotulo: string; valor?: string; href?: string; cores?: boolean };
+const linhas: Linha[] = [
+  { rotulo: c.clube.equipe === 'selecao' ? 'Seleção' : 'Clube', valor: c.clube.nome, href: filtro('clube', c.clubeId) },
+  { rotulo: 'País', valor: c.clube.pais, href: filtro('pais', c.clube.pais) },
+  { rotulo: 'Estado', valor: c.clube.uf && UFS[c.clube.uf].nome },
+  { rotulo: 'Cidade', valor: c.clube.cidade },
+  { rotulo: 'Liga', valor: c.clube.liga, href: c.clube.liga && filtro('liga', c.clube.liga) },
+  { rotulo: 'Temporada', valor: c.temporada },
+  { rotulo: 'Tipo', valor: rotulo.tipo(c), href: filtro('tipo', c.tipo) },
+  { rotulo: 'Esporte', valor: c.esporte !== 'futebol' ? c.esporte : undefined },
+  { rotulo: 'Relançamento', valor: c.retro ? 'Sim, retrô' : undefined },
+  { rotulo: 'Versão', valor: rotulo.versao(c) },
+  { rotulo: 'Manga', valor: rotulo.manga(c) },
+  { rotulo: 'Fabricante', valor: c.fabricante, href: c.fabricante && filtro('fabricante', c.fabricante) },
+  { rotulo: 'Patrocinador', valor: c.patrocinador },
+  { rotulo: 'Tamanho', valor: c.tamanho },
+  { rotulo: 'Nome e número', valor: c.nomeNumero },
+  { rotulo: 'Patches', valor: c.patches.join(', ') || undefined },
+  { rotulo: 'Autografada', valor: desejo ? undefined : c.autografada ? 'Sim' : 'Não' },
+  { rotulo: 'Conservação', valor: rotulo.conservacao(c) },
+  { rotulo: 'Como conseguiu', valor: rotulo.origem(c) },
+  { rotulo: 'Aquisição', valor: formatarData(c.aquisicao) },
+  { rotulo: 'Cores', cores: true },
+  { rotulo: 'Padrão', valor: rotulo.padrao(c) },
+  { rotulo: 'Arara', valor: c.arara },
+  { rotulo: 'Etiquetas', valor: c.tags.join(', ') || undefined },
+].filter((l) => l.valor || l.cores);
+
+const temVerso = !!c.verso || !c.frente;
+---
+<Base titulo={`${c.clube.nome} ${c.temporada}`} descricao={`Camisa ${tipoCurto(c).toLowerCase()} do ${c.clube.nome}, temporada ${c.temporada}.`}>
+  <p class="voltar"><a href={link(desejo ? 'desejos/' : '')}>← {desejo ? 'Lista de desejos' : 'Voltar para a arara'}</a></p>
+
+  <article class="camisa-pagina">
+    <div class="fotos">
+      <div class:list={['vitrine', { 'com-recorte': c.frente?.recorte, desejo }]}>
+        <button class="lado" type="button" data-lado="frente" data-zoom={zoomFrente} aria-label={zoomFrente ? 'Ampliar a frente' : undefined} disabled={!zoomFrente}>
+          <FotoCamisa camisa={c} lado="frente" tamanho="pagina" prioridade />
+        </button>
+        {temVerso && (
+          <button class="lado" type="button" data-lado="verso" data-zoom={zoomVerso} aria-label={zoomVerso ? 'Ampliar o verso' : undefined} disabled={!zoomVerso} hidden>
+            <FotoCamisa camisa={c} lado="verso" tamanho="pagina" />
+          </button>
+        )}
+      </div>
+      <div class="controles-foto">
+        {temVerso && (
+          <div class="alternar" role="group" aria-label="Lado da camisa">
+            <button type="button" aria-pressed="true" data-mostrar="frente">Frente</button>
+            <button type="button" aria-pressed="false" data-mostrar="verso">Verso</button>
+          </div>
+        )}
+        {zoomFrente && <p class="dica">Toque na foto para ampliar.</p>}
+      </div>
+      {detalhes.length > 0 && (
+        <ul class="detalhes" aria-label="Detalhes">
+          {detalhes.map((d) => (
+            <li>
+              <button type="button" data-zoom={d.zoom} aria-label={`Ampliar detalhe${d.foto.legenda ? ': ' + d.foto.legenda : ''}`}>
+                <img src={d.miniatura} alt="" width="120" height="120" loading="lazy" />
+              </button>
+              {d.foto.legenda && <span>{d.foto.legenda}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div class="texto">
+      <p class="sobretitulo">{desejo ? 'Procura-se · lista de desejos' : c.arara}</p>
+      <h1>{c.clube.nome} <span>{c.temporada}</span></h1>
+      <p class="sub">{tipoCurto(c)} · {rotulo.versao(c)}{c.nomeNumero ? ` · ${c.nomeNumero}` : ''}</p>
+      {c.historia && <div class="historia"><Content /></div>}
+
+      <dl class="ficha">
+        {linhas.map((l) => (
+          <>
+            <dt>{l.rotulo}</dt>
+            <dd>
+              {l.cores ? (
+                <span class="cores">
+                  {c.cores.map((cor) => (
+                    <a href={filtro('cor', cor)} class="cor"><span class="amostra" style={`background:${CORES[cor].hex}`} />{CORES[cor].rotulo}</a>
+                  ))}
+                </span>
+              ) : l.href ? <a href={l.href}>{l.valor}</a> : l.valor}
+            </dd>
+          </>
+        ))}
+      </dl>
+    </div>
+  </article>
+
+  <dialog id="zoom" aria-label="Foto ampliada">
+    <button class="fechar" type="button" aria-label="Fechar">×</button>
+    <div class="zoom-area"><img alt="" /></div>
+    <p class="zoom-dica">Toque para aproximar · arraste para mover</p>
+  </dialog>
+</Base>
+
+<style>
+  .voltar { margin: 16px 0 0; }
+  .voltar a { display: inline-flex; align-items: center; min-height: 44px; color: var(--texto-2); text-decoration: none; }
+  .voltar a:hover { color: var(--texto); }
+
+  .camisa-pagina { display: grid; gap: 24px; margin-top: 8px; }
+  @media (min-width: 760px) { .camisa-pagina { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; } .fotos { position: sticky; top: 16px; } }
+
+  .vitrine { background: var(--placa); border-radius: var(--raio); padding: 6%; aspect-ratio: 4 / 5; display: grid; place-items: center; }
+  .vitrine.com-recorte { background: radial-gradient(ellipse at 50% 40%, var(--superficie), var(--placa) 75%); }
+  .lado { display: grid; place-items: center; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+  .lado:disabled { cursor: default; }
+  .lado :global(img) { max-height: 100%; width: auto; max-width: 100%; object-fit: contain; }
+  .lado :global(.foto-placa) { aspect-ratio: auto; background: none; }
+  .lado :global(.silhueta) { max-height: 100%; }
+  .desejo .lado :global(.silhueta) { opacity: 0.35; filter: grayscale(1); }
+
+  .controles-foto { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .alternar { display: flex; gap: 8px; }
+  .alternar button {
+    min-height: 44px; padding: 0 18px; border: 1px solid var(--borda); border-radius: 999px;
+    background: transparent; cursor: pointer;
+  }
+  .alternar button[aria-pressed="true"] { background: var(--texto); color: var(--fundo); border-color: var(--texto); }
+  .dica { margin: 0; color: var(--texto-2); font-size: 0.875rem; }
+
+  .detalhes { display: flex; gap: 12px; overflow-x: auto; margin: 16px 0 0; padding: 0 0 4px; list-style: none; }
+  .detalhes li { flex: none; width: 96px; font-size: 0.8125rem; color: var(--texto-2); }
+  .detalhes button { display: block; padding: 0; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--placa); cursor: zoom-in; overflow: hidden; }
+  .detalhes img { display: block; width: 96px; height: 96px; object-fit: cover; }
+
+  .sobretitulo { margin: 0; color: var(--acento); font: 700 0.875rem/1.2 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase; }
+  h1 { margin: 6px 0 0; font-family: var(--fonte-placa); font-weight: 900; font-size: clamp(2rem, 7vw, 3rem); line-height: 1; }
+  h1 span { color: var(--texto-2); }
+  .sub { margin: 8px 0 0; color: var(--texto-2); font-size: 1.0625rem; }
+  .historia { margin-top: 16px; font-size: 1.0625rem; max-width: 60ch; }
+  .historia :global(p) { margin: 0 0 0.8em; }
+
+  /* Ficha técnica numa etiqueta costurada, como a etiqueta interna de uma roupa */
+  .ficha {
+    display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px;
+    margin: 24px 0 0; padding: 20px 18px 18px; border-radius: 4px;
+    background: var(--etiqueta);
+    outline: 1px dashed var(--texto-2); outline-offset: -7px;
+    box-shadow: 0 0 0 1px var(--borda);
+    font-family: var(--fonte-titulo); font-size: 1rem;
+  }
+  .ficha dt { color: var(--texto-2); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8125rem; padding-top: 3px; }
+  .ficha dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  .ficha a { color: inherit; text-decoration-color: var(--borda); text-underline-offset: 3px; }
+  .ficha a:hover { text-decoration-color: currentColor; }
+  .cores { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .cor { display: inline-flex; align-items: center; gap: 6px; }
+  .amostra { width: 14px; height: 14px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--contorno-camisa); }
+
+  dialog#zoom {
+    width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+    background: var(--fundo); color: var(--texto);
+  }
+  dialog#zoom::backdrop { background: rgb(0 0 0 / 0.7); }
+  .zoom-area { width: 100%; height: 100%; overflow: auto; display: grid; place-items: center; cursor: zoom-in; touch-action: pan-x pan-y pinch-zoom; }
+  .zoom-area img { max-width: 100%; max-height: 100dvh; object-fit: contain; }
+  .zoom-area.ampliado { display: block; cursor: zoom-out; }
+  .zoom-area.ampliado img { max-width: none; max-height: none; width: 250%; }
+  @media (min-width: 760px) { .zoom-area.ampliado img { width: auto; } }
+  .fechar {
+    position: fixed; top: 12px; right: 12px; z-index: 1; width: 48px; height: 48px;
+    border: 1px solid var(--borda); border-radius: 999px; background: var(--superficie); font-size: 1.625rem; line-height: 1; cursor: pointer;
+  }
+  .zoom-dica {
+    position: fixed; left: 0; right: 0; bottom: 12px; width: fit-content; margin: 0 auto; padding: 4px 12px;
+    border-radius: 999px; background: var(--superficie); color: var(--texto-2); font-size: 0.875rem; pointer-events: none;
+  }
+</style>
+
+<script>
+  // Frente e verso
+  const lados = document.querySelectorAll<HTMLElement>('.lado');
+  const botoes = document.querySelectorAll<HTMLButtonElement>('[data-mostrar]');
+  for (const b of botoes) {
+    b.addEventListener('click', () => {
+      for (const l of lados) l.hidden = l.dataset.lado !== b.dataset.mostrar;
+      for (const o of botoes) o.setAttribute('aria-pressed', String(o === b));
+    });
+  }
+
+  // Zoom: abre a versão grande; tocar aproxima no ponto tocado, tocar de novo afasta
+  const dialogo = document.getElementById('zoom') as HTMLDialogElement;
+  const area = dialogo.querySelector<HTMLElement>('.zoom-area')!;
+  const img = area.querySelector('img')!;
+  document.addEventListener('click', (e) => {
+    const alvo = (e.target as Element).closest<HTMLElement>('[data-zoom]');
+    if (!alvo || !alvo.dataset.zoom) return;
+    area.classList.remove('ampliado');
+    img.src = alvo.dataset.zoom;
+    dialogo.showModal();
+  });
+  area.addEventListener('click', (e) => {
+    if (area.classList.contains('ampliado')) { area.classList.remove('ampliado'); return; }
+    const caixa = img.getBoundingClientRect();
+    const px = (e.clientX - caixa.left) / caixa.width, py = (e.clientY - caixa.top) / caixa.height;
+    area.classList.add('ampliado');
+    area.scrollTo(px * area.scrollWidth - area.clientWidth / 2, py * area.scrollHeight - area.clientHeight / 2);
+  });
+  dialogo.querySelector('.fechar')!.addEventListener('click', () => dialogo.close());
+</script>

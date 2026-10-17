@@ -1,0 +1,111 @@
+---
+// Silhueta genérica para camisa sem foto: corpo na cor 1, mangas e gola na cor 2
+// e o padrão por cima. Sem escudo, logo, patrocinador ou número da camisa real.
+import { CORES } from '../opcoes';
+import type { Camisa } from '../lib/camisas';
+
+interface Props {
+  camisa: Camisa;
+  costas?: boolean;
+  rotulo?: boolean;
+}
+const { camisa: c, costas = false, rotulo = true } = Astro.props;
+
+const hex = c.cores.map((cor) => CORES[cor].hex);
+const [cor1, cor2 = cor1, cor3 = cor2] = hex;
+const id = `sil-${c.id}-${costas ? 'v' : 'f'}-${Math.random().toString(36).slice(2, 7)}`;
+
+const CONTORNO = 'M70 26 L46 35 L14 72 L36 94 L55 79 L54 180 L146 180 L145 79 L164 94 L186 72 L154 35 L130 26';
+const CORPO = 'M70 26 L46 35 L55 79 L54 180 L146 180 L145 79 L154 35 L130 26';
+const MANGAS = 'M46 35 L14 72 L36 94 L55 79 Z M154 35 L186 72 L164 94 L145 79 Z';
+const MANGAS_LONGAS = 'M46 35 L4 150 L28 158 L55 79 Z M154 35 L196 150 L172 158 L145 79 Z';
+
+const longa = c.manga === 'longa';
+const gola = costas ? 'Q100 34 70 26' : 'Q100 46 70 26';
+const corpo = `${CORPO} ${gola} Z`;
+const contorno = longa
+  ? `M70 26 L46 35 L4 150 L28 158 L55 79 L54 180 L146 180 L145 79 L172 158 L196 150 L154 35 L130 26 ${gola} Z`
+  : `${CONTORNO} ${gola} Z`;
+const punhos = longa ? 'M4 150 L28 158 M196 150 L172 158' : 'M14 72 L36 94 M186 72 L164 94';
+
+// Na faixa no peito as mangas seguem o corpo; nos outros padrões, a cor 2
+const corManga = c.padrao === 'faixa-peito' ? cor1 : cor2;
+const corPunho = corManga === cor1 ? cor2 : cor1;
+
+// Gerador pseudoaleatório a partir do id, para a estampa ser sempre a mesma
+function sorteio(semente: string) {
+  let h = 2166136261;
+  for (const ch of semente) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+function padrao(): string {
+  const alterna = (i: number) => (i % 2 ? cor3 : cor2);
+  switch (c.padrao) {
+    case 'listras-verticais':
+      return [64, 86, 108, 130].map((x, i) => `<rect x="${x}" y="0" width="11" height="200" fill="${alterna(i)}"/>`).join('');
+    case 'listras-horizontais':
+      return [52, 84, 116, 148].map((y, i) => `<rect x="0" y="${y}" width="200" height="14" fill="${alterna(i)}"/>`).join('');
+    case 'faixa-peito':
+      return cor3 === cor2
+        ? `<rect x="0" y="66" width="200" height="22" fill="${cor2}"/>`
+        : `<rect x="0" y="64" width="200" height="14" fill="${cor2}"/><rect x="0" y="78" width="200" height="12" fill="${cor3}"/>`;
+    case 'faixa-diagonal':
+      return `<rect x="-40" y="92" width="280" height="24" fill="${cor2}" transform="rotate(42 100 100)"/>`;
+    case 'metade':
+      return `<rect x="100" y="0" width="100" height="200" fill="${cor2}"/>`;
+    case 'estampada': {
+      const r = sorteio(c.id);
+      return Array.from({ length: 14 }, (_, i) => {
+        const x = 50 + r() * 100, y = 30 + r() * 150;
+        const rx = 6 + r() * 14, ry = 3 + r() * 8, giro = Math.round(r() * 180);
+        return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" transform="rotate(${giro} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${alterna(i)}"/>`;
+      }).join('');
+    }
+    default:
+      return '';
+  }
+}
+
+// Nome e número usam a cor 2 se ela contrastar com a cor 1; senão, preto ou branco
+function luminancia(h: string) {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const v = parseInt(h.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+const contraste = (a: string, b: string) =>
+  (Math.max(luminancia(a), luminancia(b)) + 0.05) / (Math.min(luminancia(a), luminancia(b)) + 0.05);
+const corTexto = contraste(cor1, cor2) >= 3 ? cor2 : contraste(cor1, '#111111') > contraste(cor1, '#FFFFFF') ? '#111111' : '#FFFFFF';
+
+let nome = '', numero = '';
+if (costas && c.nomeNumero) {
+  const partes = c.nomeNumero.trim().split(/\s+/);
+  numero = /^\d+$/.test(partes.at(-1)!) ? partes.pop()! : '';
+  nome = partes.join(' ');
+}
+
+const aria = rotulo
+  ? { role: 'img', 'aria-label': `Silhueta da camisa ${c.clube.nome} ${c.temporada}${costas ? ', verso' : ''}` }
+  : { 'aria-hidden': 'true' };
+---
+<svg class="silhueta" viewBox={longa ? '0 18 200 168' : '8 18 184 168'} {...aria}>
+  <defs><clipPath id={id}><path d={corpo} /></clipPath></defs>
+  <path d={corpo} fill={cor1} />
+  <g clip-path={`url(#${id})`} set:html={padrao()} />
+  <path d={longa ? MANGAS_LONGAS : MANGAS} fill={corManga} />
+  <path d={punhos} stroke={corPunho} stroke-width="6" />
+  <path d={`M130 26 ${gola}`} fill="none" stroke={cor2} stroke-width="6" />
+  {(nome || numero) && (
+    <g fill={corTexto} font-family="Arial, sans-serif" font-weight="700" text-anchor="middle">
+      {nome && <text x="100" y="62" font-size="13" letter-spacing="1">{nome}</text>}
+      {numero && <text x="100" y={nome ? 126 : 118} font-size="58">{numero}</text>}
+    </g>
+  )}
+  <path d={contorno} fill="none" stroke="var(--contorno-camisa)" stroke-width="1.5" stroke-linejoin="round" />
+</svg>

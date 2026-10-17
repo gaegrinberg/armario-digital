@@ -1,0 +1,138 @@
+/* Tokens da direção "Arara do Brasil" (docs/design.md) e estrutura comum às páginas */
+
+:root {
+  --fundo: #EDEBE6; --superficie: #FFFFFF; --placa: #F4F1EA;
+  --placa-pintada: #F7F1E1; --tinta: #1F1A14;
+  --etiqueta: #FBF8F1;
+  --texto: #18191B; --texto-2: #55585E; --borda: #D3D0C8;
+  --metal: #8C9097;
+  --acento: #A3271B; --sobre-acento: #FFFFFF;
+  --contorno-camisa: rgb(0 0 0 / 0.22);
+  --sombra-camisa: drop-shadow(0 8px 10px rgb(40 30 10 / 0.18));
+  --fonte-placa: 'Londrina Solid', 'Arial Black', sans-serif;
+  --fonte-titulo: 'Archivo Narrow', 'Arial Narrow', sans-serif;
+  --fonte-texto: 'Archivo', system-ui, sans-serif;
+  --raio: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fundo: #121315; --superficie: #1C1E21; --placa: #202226;
+    --placa-pintada: #26231E; --tinta: #F2EBDD;
+    --etiqueta: #24272B;
+    --texto: #ECECEA; --texto-2: #A6A8AC; --borda: #34373C;
+    --metal: #5E636B;
+    --acento: #F08A7E; --sobre-acento: #1A0D0B;
+    --contorno-camisa: rgb(255 255 255 / 0.18);
+    --sombra-camisa: drop-shadow(0 8px 10px rgb(0 0 0 / 0.5));
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --fundo: #121315; --superficie: #1C1E21; --placa: #202226;
+  --placa-pintada: #26231E; --tinta: #F2EBDD;
+  --etiqueta: #24272B;
+  --texto: #ECECEA; --texto-2: #A6A8AC; --borda: #34373C;
+  --metal: #5E636B;
+  --acento: #F08A7E; --sobre-acento: #1A0D0B;
+  --contorno-camisa: rgb(255 255 255 / 0.18);
+  --sombra-camisa: drop-shadow(0 8px 10px rgb(0 0 0 / 0.5));
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--fundo); color: var(--texto);
+  font-family: var(--fonte-texto); font-size: 1rem; line-height: 1.5;
+}
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--acento); }
+img { max-width: 100%; height: auto; }
+:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.oculto {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.pagina { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
+
+/* ---------- Topo comum ---------- */
+.barra { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 16px 0 0; }
+.marca {
+  font-family: var(--fonte-placa); font-weight: 900; font-size: 1.5rem; line-height: 1;
+  color: var(--texto); text-decoration: none;
+}
+.nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.pilula {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--borda); border-radius: 999px; background: transparent;
+  color: var(--texto-2); font-size: 0.875rem; text-decoration: none; white-space: nowrap; cursor: pointer;
+}
+.pilula[aria-current="page"] { background: var(--texto); border-color: var(--texto); color: var(--fundo); }
+.pilula:hover { border-color: var(--texto-2); }
+
+.campo-busca {
+  width: 100%; min-height: 48px; padding: 0 16px;
+  border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie);
+}
+.campo-busca::placeholder { color: var(--texto-2); }
+
+.check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--texto-2); cursor: pointer; }
+.check input { width: 20px; height: 20px; accent-color: var(--acento); }
+
+.vazio { color: var(--texto-2); padding: 32px 0; }
+
+.rodape { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--borda); color: var(--texto-2); font-size: 0.875rem; }
+.rodape p { margin: 4px 0; }
+
+/* ---------- Silhueta e fotos ---------- */
+.silhueta { display: block; width: 100%; height: 100%; }
+
+.foto-placa {
+  display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: contain;
+  background: var(--placa); border-radius: var(--raio);
+}
+.foto-recorte { display: block; width: 100%; height: auto; filter: var(--sombra-camisa); }
+
+/* ---------- Placa pintada (título de região) ---------- */
+.placa-pintada {
+  display: inline-block; margin: 0; padding: 4px 16px 6px;
+  background: var(--placa-pintada); color: var(--tinta);
+  font-family: var(--fonte-placa); font-weight: 900; font-size: 1.875rem; line-height: 1; letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 2px solid var(--tinta);
+  border-radius: 3px 8px 4px 9px / 9px 4px 8px 3px;
+  box-shadow: 3px 3px 0 var(--tinta);
+  transform: rotate(-1.2deg);
+}
+
+/* ---------- Etiqueta de papel ---------- */
+.etiqueta {
+  position: relative; display: inline-block; min-width: 62%; max-width: 92%; margin-top: 16px; padding: 12px 10px 8px;
+  background: var(--etiqueta); border: 1px solid var(--borda); border-radius: 3px 3px 6px 6px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  transform: rotate(var(--torto, -2deg)); text-align: left; color: var(--texto);
+}
+.etiqueta::before {
+  content: ''; position: absolute; top: 4px; left: 50%; width: 6px; height: 6px; margin-left: -3px;
+  border-radius: 50%; background: var(--fundo); box-shadow: inset 0 0 0 1px var(--borda);
+}
+.etiqueta::after {
+  content: ''; position: absolute; bottom: calc(100% - 7px); left: 50%; width: 1px; height: 22px;
+  background: var(--texto-2);
+}
+.etiqueta strong { display: block; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.0625rem; line-height: 1.15; }
+.etiqueta .meta { display: block; color: var(--texto-2); font-size: 0.875rem; }
+.etiqueta .uf-tag { position: absolute; top: 6px; right: 6px; font: 600 0.75rem/1 var(--fonte-titulo); color: var(--texto-2); }
+.etiqueta .procura { display: block; color: var(--acento); font: 700 0.8125rem/1.2 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* ---------- Títulos de página (grade e desejos) ---------- */
+.titulo-pagina { margin: 20px 0 0; font-family: var(--fonte-placa); font-weight: 900; font-size: clamp(2rem, 7vw, 2.75rem); line-height: 1; }
+.subtitulo-pagina { margin: 6px 0 0; color: var(--texto-2); }
