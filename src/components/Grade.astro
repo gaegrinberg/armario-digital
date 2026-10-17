@@ -45,9 +45,11 @@ const coresUsadas = Object.entries(CORES)
   .map(([cor, info]) => ({ cor, ...info, n: camisas.filter((c) => c.cores.includes(cor as any)).length }))
   .filter((c) => c.n > 0);
 
-const ORDENS = desejo
-  ? [['temporada', 'Temporada'], ['clube', 'Clube'], ['cor', 'Cor']]
-  : [['aquisicao', 'Data de aquisição'], ['temporada', 'Temporada'], ['clube', 'Clube'], ['cor', 'Cor']];
+// Data de aquisição só entra (e vira o padrão) quando alguma camisa tem a data preenchida
+const ORDENS = [
+  ...(!desejo && camisas.some((c) => c.aquisicao) ? [['aquisicao', 'Data de aquisição']] : []),
+  ['temporada', 'Temporada'], ['clube', 'Clube'], ['cor', 'Cor'],
+];
 ---
 <div class="grade-pagina" data-ordem-padrao={ORDENS[0][0]}>
   <div class="controles">
