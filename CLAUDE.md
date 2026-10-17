@@ -7,9 +7,9 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 - **Etapa 1 (pesquisa): aprovada.** Ver `docs/referencias.md`. A síntese da primeira rodada vale para a v1; a segunda rodada, no fim do arquivo, traz as referências brasileiras.
 - **Etapa 2 (design): aprovada.** A direção escolhida é a **Arara do Brasil**, descrita na última seção de `docs/design.md`. O protótipo é `prototipos/arara.html`. Os protótipos museu e álbum ficam só como histórico, mas a grade do museu pode virar a visão "ver em grade".
 - **Etapa 3 (arquitetura): respondida em 17/10/2026.** Ver `docs/arquitetura.md`, com as decisões no fim. Stack: Astro, Sveltia CMS com token pessoal, rembg/birefnet no GitHub Actions e cores escolhidas numa paleta fixa de 13.
-- **Etapa 4 (primeira versão): publicada em 17/10/2026, aguardando o Checkpoint 4.** Site no ar em <https://gaegrinberg.github.io/armario-digital/>, com arara, grade com filtros na URL, página da camisa, lista de desejos, CMS (`/admin/`), recorte (`scripts/recortar.py`) e workflow de publicação (`.github/workflows/site.yml`). Ainda usa as 14 camisas fictícias (etiqueta `exemplo`).
-- Pendente da Etapa 4: testar o CMS de verdade com o token do dono e um recorte rodando no GitHub Actions (o recorte só foi testado localmente).
-- Próximo passo provável: importar as 32 camisas reais de `Camisas/` (montar os pares frente/verso, identificar clube e temporada, recortar).
+- **Etapa 4 (primeira versão): publicada em 17/10/2026, aguardando o Checkpoint 4.** Site no ar em <https://gaegrinberg.github.io/armario-digital/>, com arara, grade com filtros na URL, página da camisa, lista de desejos, CMS (`/admin/`), recorte (`scripts/recortar.py`) e workflow de publicação (`.github/workflows/site.yml`). O dono testou o CMS (cadastrou o clube Sergipe) e aprovou.
+- **Coleção real importada em 17/10/2026:** as 32 camisas de `Camisas/` entraram por `scripts/importar.py` com a lista `scripts/importacao-inicial.json`. Os exemplos fictícios foram apagados. Temporadas e tipos foram deduzidos das fotos e várias precisam da confirmação do dono (lista na conversa de 17/10). Tamanho, conservação, origem, data e história ficaram vazios para o dono completar pelo CMS.
+- Faltam fotografar e cadastrar (o dono faz pelo CMS): +2 do São Paulo, Flamengo, Fluminense, Bahia e Santa Cruz. Os clubes já estão cadastrados. Falta também o verso do Santos.
 - Para rodar: `npm run dev` e abrir <http://localhost:4321/armario-digital/>. A página `/admin/` só funciona no build (`npm run build && npm run preview`).
 - O `.gitignore` ignora só `/Camisas/` na raiz. Sem a barra, o Git no Windows (que ignora maiúsculas) escondia também `src/content/camisas`.
 
@@ -28,7 +28,6 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 
 - Teste de 17/10/2026: o fundo precisa ser removido, porque as fotos têm parede, rodapé e interruptor. O `rembg` com o modelo `birefnet-general-lite` recorta bem até as camisas brancas (cerca de 15 s por foto em CPU, a 1500 px). O cabide sai num pós-processamento e a exposição é ajustada por autocontraste. Detalhes em `docs/arquitetura.md` 3.4.
 - Originais em `Camisas/` (fora do Git, via `.gitignore`): 63 fotos de 32 camisas, tiradas em 16/10/2026. Os nomes dos arquivos não seguem a ordem frente/verso, então os pares precisam ser montados olhando as fotos.
-- Pendências do dono: fotografar o verso do Santos (foto `20261017_000314`) e as camisas que ainda faltam.
 - A camisa vermelha das fotos `20261017_000603` e `20261017_000616` é do Sergipe.
 
 ## Como trabalhar

@@ -98,6 +98,18 @@ O caminho de uma foto até o site:
 Sem recorte, o site mostra a foto enviada numa placa. Sem foto, mostra uma silhueta genérica
 nas cores da camisa.
 
+### Cadastrar um lote pelo computador
+
+Para muitas camisas de uma vez, monte uma lista em JSON como
+[`scripts/importacao-inicial.json`](scripts/importacao-inicial.json), com os campos de cada
+camisa e os nomes das fotos de frente e verso em `Camisas/`. O script converte as fotos e cria
+as pastas; depois é só recortar:
+
+```bash
+.venv/Scripts/python scripts/importar.py scripts/minha-lista.json
+.venv/Scripts/python scripts/recortar.py
+```
+
 ### Recortar no computador
 
 Útil para muitas fotos de uma vez, ou para conferir o resultado antes de enviar. Precisa de
@@ -136,9 +148,3 @@ GitHub Actions faz, use `npm run build` (o resultado fica em `dist/`) e `npm run
 O workflow [`.github/workflows/site.yml`](.github/workflows/site.yml) roda a cada push na
 `main`: recorta as fotos novas (e faz commit dos recortes), gera o site e publica no GitHub
 Pages. Os protótipos de design continuam em `prototipos/`, fora do site.
-
-## Exemplos
-
-As camisas com a etiqueta `exemplo` têm dados fictícios (clubes reais, mas fabricantes,
-patrocinadores e histórias inventados). Enquanto existir alguma, o rodapé do site avisa.
-Para tirá-las, apague as pastas delas em `src/content/camisas/`.
