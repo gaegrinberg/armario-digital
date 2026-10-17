@@ -1,0 +1,12 @@
+---
+clube: "pumas-unam"
+temporada: "2022/23"
+tipo: "titular"
+cores: ["branco", "preto", "dourado"]
+padrao: "liso"
+fabricante: "Nike"
+patrocinador: "DHL"
+fotos:
+  frente: frente.webp
+  verso: verso.webp
+---
