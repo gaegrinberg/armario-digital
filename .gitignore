@@ -1,2 +1,9 @@
 # Fotos originais do celular: ficam fora do repositório (pesadas)
 Camisas/
+
+# Gerados
+node_modules/
+dist/
+.astro/
+.venv/
+__pycache__/
