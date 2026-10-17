@@ -9,7 +9,7 @@ interface Props {
   camisa: Camisa;
   foto?: Foto;
   lado?: 'frente' | 'verso';
-  tamanho: 'miniatura' | 'pagina';
+  tamanho: 'mini' | 'miniatura' | 'pagina';
   rotulo?: boolean;
   prioridade?: boolean;
 }
@@ -17,6 +17,8 @@ const { camisa: c, lado = 'frente', tamanho, rotulo = true, prioridade = false }
 const foto = Astro.props.foto ?? (lado === 'verso' ? c.verso : c.frente);
 
 const MEDIDAS = {
+  // Lista de cidades do mapa
+  mini: { widths: [72, 144], sizes: '72px' },
   // Arara e grade: cabe em 2 colunas numa tela 3x
   miniatura: { widths: [240, 480], sizes: '(min-width: 760px) 230px, 46vw' },
   // Página da camisa

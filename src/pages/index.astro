@@ -7,6 +7,7 @@ import { CONFIG } from '../config';
 import { ARARA_GRINGAS, ARARA_SELECOES, CORES, REGIOES, UFS } from '../opcoes';
 import { porTemporada, todasAsCamisas, type Camisa } from '../lib/camisas';
 import { link } from '../lib/link';
+import { slug } from '../lib/normalizar';
 
 const camisas = [...(await todasAsCamisas())].sort(porTemporada);
 const colecao = camisas.filter((c) => c.status === 'colecao');
@@ -24,8 +25,6 @@ const araras = [...grupos.entries()].sort(
     conta(b[1]) - conta(a[1]) ||
     REGIOES.indexOf(a[0] as any) - REGIOES.indexOf(b[0] as any),
 );
-
-const slug = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 // Mapa de quadradinhos: intensidade pelo número de camisas do estado
 const porUf = new Map<string, number>();

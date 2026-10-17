@@ -5,7 +5,7 @@ import type { ImageMetadata } from 'astro';
 import {
   ARARA_GRINGAS, ARARA_SELECOES, CONSERVACAO, CORES, MANGAS, ORIGENS, PADROES, TIPOS, UFS, VERSOES,
 } from '../opcoes';
-import { normalizar } from './normalizar';
+import { normalizar, slug } from './normalizar';
 
 // Todas as imagens das pastas das camisas, indexadas pelo caminho
 const IMAGENS = import.meta.glob<ImageMetadata>('/src/content/camisas/**/*.{webp,jpg,jpeg,png,avif}', {
@@ -143,3 +143,8 @@ export function porTemporada(a: Camisa, b: Camisa) {
     a.clube.nome.localeCompare(b.clube.nome, 'pt')
   );
 }
+
+// ---------- Lugares (mapa) ----------
+
+// Uma cidade pode ter vários clubes; o mapa agrupa por cidade e país
+export const lugarId = (clube: Camisa['clube']) => slug(`${clube.cidade} ${clube.pais}`);

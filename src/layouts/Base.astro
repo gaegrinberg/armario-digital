@@ -7,7 +7,7 @@ import { link } from '../lib/link';
 interface Props {
   titulo?: string;
   descricao?: string;
-  atual?: 'arara' | 'grade' | 'desejos';
+  atual?: 'arara' | 'grade' | 'mapa' | 'desejos';
 }
 const { titulo, descricao = 'Coleção pessoal de camisas de futebol.', atual } = Astro.props;
 const exemplos = (await todasAsCamisas()).some((c) => c.tags.includes('exemplo'));
@@ -41,9 +41,10 @@ const exemplos = (await todasAsCamisas()).some((c) => c.tags.includes('exemplo')
       <nav class="nav" aria-label="Seções">
         <a class="pilula" href={link('')} aria-current={atual === 'arara' ? 'page' : undefined}>Arara</a>
         <a class="pilula" href={link('grade/')} aria-current={atual === 'grade' ? 'page' : undefined}>Grade</a>
+        <a class="pilula" href={link('mapa/')} aria-current={atual === 'mapa' ? 'page' : undefined}>Mapa</a>
         <a class="pilula" href={link('desejos/')} aria-current={atual === 'desejos' ? 'page' : undefined}>Desejos</a>
-        <button class="pilula" id="tema" type="button">◐ Auto</button>
       </nav>
+      <button class="pilula" id="tema" type="button">◐ Auto</button>
     </header>
     <slot />
     <footer class="rodape">

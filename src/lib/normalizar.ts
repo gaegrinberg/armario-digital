@@ -1,2 +1,5 @@
 // Minúsculas e sem acento, para "Goiás" e "goias" darem no mesmo na busca
 export const normalizar = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// Pedaço de endereço: "Rio de Janeiro" vira "rio-de-janeiro"
+export const slug = (s: string) => normalizar(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

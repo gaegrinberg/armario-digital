@@ -60,7 +60,10 @@ img { max-width: 100%; height: auto; }
 .pagina { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
 
 /* ---------- Topo comum ---------- */
-.barra { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 16px 0 0; }
+.barra { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 16px 0 0; }
+.barra > :first-child { margin-right: auto; }
+/* No celular, a marca e a chave de tema dividem a primeira linha e as seções descem */
+@media (max-width: 559px) { .barra .nav { order: 1; flex-basis: 100%; } }
 .marca {
   font-family: var(--fonte-placa); font-weight: 900; font-size: 1.5rem; line-height: 1;
   color: var(--texto); text-decoration: none;

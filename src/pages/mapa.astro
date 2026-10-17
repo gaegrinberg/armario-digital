@@ -1,0 +1,263 @@
+---
+// Mapa-múndi com um marcador por cidade (vários clubes na mesma cidade dividem o marcador).
+// O fundo vem do OpenStreetMap, pelo Leaflet. A lista de cidades abaixo do mapa funciona
+// sem JavaScript e é de onde o mapa tira os marcadores e o conteúdo de cada balão.
+import Base from '../layouts/Base.astro';
+import FotoCamisa from '../components/FotoCamisa.astro';
+import { CONFIG } from '../config';
+import { UFS } from '../opcoes';
+import { lugarId, porTemporada, tipoCurto, todasAsCamisas, type Camisa } from '../lib/camisas';
+import { link } from '../lib/link';
+
+type Lugar = { id: string; cidade: string; pais: string; uf?: keyof typeof UFS; lat: number; lon: number; camisas: Camisa[] };
+
+const camisas = [...(await todasAsCamisas())].sort(porTemporada);
+const porLugar = new Map<string, Lugar>();
+const semCoordenadas = new Set<string>();
+for (const c of camisas) {
+  const { coordenadas, cidade, pais, uf } = c.clube;
+  if (!coordenadas) { semCoordenadas.add(c.clube.nome); continue; }
+  const id = lugarId(c.clube);
+  if (!porLugar.has(id)) porLugar.set(id, { id, cidade, pais, uf, lat: coordenadas.lat, lon: coordenadas.lon, camisas: [] });
+  porLugar.get(id)!.camisas.push(c);
+}
+// Na cidade do time do coração, ele vem primeiro
+const doCoracao = (c: Camisa) => Number(c.clubeId !== CONFIG.timeDoCoracao);
+for (const l of porLugar.values()) l.camisas.sort((a, b) => doCoracao(a) - doCoracao(b) || porTemporada(a, b));
+const lugares = [...porLugar.values()].sort(
+  (a, b) => b.camisas.length - a.camisas.length || a.cidade.localeCompare(b.cidade, 'pt'),
+);
+
+const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
+const legenda = (l: Lugar) => {
+  const tem = l.camisas.filter((c) => c.status === 'colecao').length, procuradas = l.camisas.length - tem;
+  return [tem && plural(tem, 'camisa', 'camisas'), procuradas && plural(procuradas, 'procurada', 'procuradas')].filter(Boolean).join(' · ');
+};
+---
+<Base titulo="Mapa" atual="mapa" descricao="De onde vem cada camisa da coleção, com zoom até a cidade.">
+  <h1 class="titulo-pagina">De onde vêm</h1>
+  <p class="subtitulo-pagina">
+    {plural(lugares.length, 'cidade', 'cidades')} em {plural(new Set(lugares.map((l) => l.pais)).size, 'país', 'países')}.
+    Toque num marcador para ver as camisas da cidade.
+  </p>
+
+  <div class="enquadrar" role="group" aria-label="Enquadrar o mapa" hidden>
+    <button class="pilula" type="button" data-enquadrar="mundo">Mundo</button>
+    <button class="pilula" type="button" data-enquadrar="brasil">Brasil</button>
+  </div>
+  <div class="mapa" id="mapa" hidden></div>
+
+  <h2 class="placa-pintada titulo-lugares">Cidades</h2>
+  <ol class="lugares">
+    {lugares.map((l) => (
+      <li class="lugar" id={`lugar-${l.id}`} data-lugar={l.id} data-lat={l.lat} data-lon={l.lon} data-n={l.camisas.length}
+          data-coracao={l.camisas.some((c) => c.clubeId === CONFIG.timeDoCoracao) ? '' : undefined}>
+        <div class="lugar-topo">
+          <div>
+            <h3>{l.cidade}</h3>
+            <p>{l.uf ? `${UFS[l.uf].nome}, ` : ''}{l.pais} · {legenda(l)}</p>
+          </div>
+          <a class="pilula ver" href={`?cidade=${l.id}`} data-ver={l.id} hidden>Ver no mapa</a>
+        </div>
+        <ul class="lugar-camisas">
+          {l.camisas.map((c) => (
+            <li class:list={{ desejo: c.status === 'desejo' }}>
+              <a href={link(`camisa/${c.id}/`)}>
+                <span class="mini"><FotoCamisa camisa={c} tamanho="mini" rotulo={false} /></span>
+                <span class="nome">
+                  <strong>{c.clube.nome}</strong> {c.temporada}
+                  <small>{tipoCurto(c)}{c.status === 'desejo' ? ' · procura-se' : ''}</small>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </li>
+    ))}
+  </ol>
+  {semCoordenadas.size > 0 && (
+    <p class="vazio">Sem coordenadas, fora do mapa: {[...semCoordenadas].join(', ')}.</p>
+  )}
+</Base>
+
+<style>
+  .enquadrar { display: flex; gap: 8px; margin: 16px 0 12px; }
+  .mapa {
+    isolation: isolate; height: min(68vh, 620px); min-height: 360px;
+    border: 1px solid var(--borda); border-radius: var(--raio); background: var(--placa);
+    font-family: var(--fonte-texto);
+  }
+
+  /* Fundo do mapa puxado para o papel da arara; no escuro, invertido */
+  .mapa :global(.leaflet-tile-pane) { filter: saturate(0.5) sepia(0.15); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .mapa :global(.leaflet-tile-pane) { filter: invert(1) hue-rotate(180deg) saturate(0.4) brightness(0.9); }
+  }
+  :root[data-theme="dark"] .mapa :global(.leaflet-tile-pane) { filter: invert(1) hue-rotate(180deg) saturate(0.4) brightness(0.9); }
+  /* Sem isso, aparecem linhas finas entre os pedaços do mapa em telas com zoom fracionado */
+  .mapa :global(.leaflet-tile) { width: 256.5px !important; height: 256.5px !important; mix-blend-mode: normal !important; }
+  .mapa :global(.leaflet-control-attribution) { background: color-mix(in srgb, var(--superficie) 85%, transparent); color: var(--texto-2); }
+  .mapa :global(.leaflet-control-attribution a) { color: var(--texto); }
+  .mapa :global(.leaflet-bar a) { background: var(--superficie); color: var(--texto); border-color: var(--borda); width: 36px; height: 36px; line-height: 36px; }
+
+  /* Marcador: uma placa redonda com o número de camisas da cidade; a do time do coração em destaque */
+  .mapa :global(.marcador) {
+    display: grid; place-items: center; width: 100%; height: 100%;
+    background: var(--placa-pintada); color: var(--tinta);
+    border: 2px solid var(--tinta); border-radius: 50%; box-shadow: 2px 2px 0 var(--tinta);
+    font: 900 0.9375rem/1 var(--fonte-placa);
+  }
+  .mapa :global(.marcador.coracao) { background: var(--acento); color: var(--sobre-acento); }
+  .mapa :global(.marcador.grupo) { background: var(--tinta); color: var(--placa-pintada); box-shadow: 0 0 0 3px var(--placa-pintada), 0 0 0 5px var(--tinta); }
+  .mapa :global(.leaflet-marker-icon:focus-visible) { outline: 3px solid var(--acento); outline-offset: 2px; border-radius: 50%; }
+
+  /* Balão: etiqueta de papel */
+  .mapa :global(.leaflet-popup-content-wrapper) {
+    background: var(--etiqueta); color: var(--texto); border-radius: var(--raio);
+    box-shadow: 0 0 0 1px var(--borda), 0 6px 16px rgb(0 0 0 / 0.18);
+  }
+  .mapa :global(.leaflet-popup-tip) { background: var(--etiqueta); box-shadow: 0 0 0 1px var(--borda); }
+  .mapa :global(.leaflet-popup-content) { margin: 12px 14px; font-size: 0.9375rem; line-height: 1.4; }
+  .mapa :global(.leaflet-popup-close-button) { width: 32px; height: 32px; font-size: 1.375rem; line-height: 30px; color: var(--texto-2); }
+  .mapa :global(.balao h3) { margin: 0 24px 2px 0; font: 900 1.25rem/1.1 var(--fonte-placa); }
+  .mapa :global(.balao p) { margin: 0 0 8px; color: var(--texto-2); font-size: 0.8125rem; }
+  .mapa :global(.balao .lugar-camisas) { max-height: 260px; overflow-y: auto; grid-template-columns: 1fr; }
+
+  .titulo-lugares { margin-top: 40px; }
+  .lugares { display: grid; gap: 16px; margin: 20px 0 0; padding: 0; list-style: none; }
+  @media (min-width: 760px) { .lugares { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .lugar { padding: 14px; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); scroll-margin-top: 16px; }
+  .lugar-topo { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+  .lugar h3 { margin: 0; font: 900 1.375rem/1.1 var(--fonte-placa); }
+  .lugar-topo p { margin: 2px 0 0; color: var(--texto-2); font-size: 0.875rem; }
+  .ver { flex: none; }
+
+  .lugar-camisas { display: grid; gap: 4px; margin: 10px 0 0; padding: 0; list-style: none; }
+  @media (min-width: 480px) { .lugar .lugar-camisas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .lugar-camisas a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px; border-radius: var(--raio); color: inherit; text-decoration: none; }
+  .lugar-camisas a:hover { background: var(--placa); }
+  .mini { flex: none; display: block; width: 48px; height: 56px; }
+  /* Tamanho fixo: o CSS do Leaflet tira o max-height das imagens dentro do mapa */
+  .mini :global(img) { width: 100%; height: 100%; object-fit: contain; }
+  .mini :global(.foto-placa) { aspect-ratio: auto; background: none; }
+  .mini :global(.foto-recorte) { filter: none; }
+  .desejo .mini { opacity: 0.4; filter: grayscale(1); }
+  .nome { min-width: 0; font-size: 0.9375rem; line-height: 1.25; }
+  .nome small { display: block; color: var(--texto-2); font-size: 0.8125rem; }
+</style>
+
+<script>
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+
+  const ZOOM_CIDADE = 12;
+  const BRASIL = L.latLngBounds([-33.8, -73.9], [5.3, -34.8]);
+
+  const caixa = document.getElementById('mapa')!;
+  caixa.hidden = false;
+  document.querySelector<HTMLElement>('.enquadrar')!.hidden = false;
+
+  const mapa = L.map(caixa, { scrollWheelZoom: false, worldCopyJump: true, minZoom: 1 });
+  mapa.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(mapa);
+
+  // A roda do mouse só dá zoom depois de um clique no mapa, para não prender a rolagem da página
+  mapa.on('click focus', () => mapa.scrollWheelZoom.enable());
+  caixa.addEventListener('mouseleave', () => mapa.scrollWheelZoom.disable());
+
+  const icone = (n: number, classe: string) => {
+    const tamanho = 26 + Math.min(n, 6) * 3;
+    return L.divIcon({ className: '', html: `<span class="marcador ${classe}">${n}</span>`, iconSize: [tamanho, tamanho] });
+  };
+
+  // Um marcador por cidade da lista; o balão leva uma cópia da lista de camisas
+  type Lugar = { id: string; n: number; marcador: L.Marker };
+  const lugares: Lugar[] = [];
+  for (const item of document.querySelectorAll<HTMLElement>('[data-lugar]')) {
+    const n = Number(item.dataset.n);
+    const cidade = item.querySelector('h3')!.textContent!;
+    const marcador = L.marker([Number(item.dataset.lat), Number(item.dataset.lon)], {
+      title: `${cidade}: ${n}`,
+      alt: cidade,
+      riseOnHover: true,
+      icon: icone(n, item.dataset.coracao != null ? 'coracao' : ''),
+    });
+    const balao = document.createElement('div');
+    balao.className = 'balao';
+    balao.append(item.querySelector('h3')!.cloneNode(true), item.querySelector('.lugar-topo p')!.cloneNode(true), item.querySelector('.lugar-camisas')!.cloneNode(true));
+    marcador.bindPopup(balao, { maxWidth: 280, minWidth: 220, autoPanPaddingTopLeft: L.point(56, 16), autoPanPaddingBottomRight: L.point(16, 16) });
+    marcador.on('popupopen', () => history.replaceState(null, '', `?cidade=${item.dataset.lugar}`));
+    marcador.on('popupclose', () => history.replaceState(null, '', location.pathname));
+    lugares.push({ id: item.dataset.lugar!, n, marcador });
+  }
+  const marcadores = new Map(lugares.map((l) => [l.id, l.marcador]));
+
+  // Cidades que se encostam no zoom atual (o Sudeste inteiro, visto do mundo) viram um
+  // marcador só, com a soma das camisas. Tocar nele aproxima até separar as cidades.
+  const DISTANCIA = 34;
+  const camada = L.layerGroup().addTo(mapa);
+  const agrupar = () => {
+    camada.clearLayers();
+    const grupos: { centro: L.Point; membros: Lugar[] }[] = [];
+    for (const l of lugares) {
+      const p = mapa.latLngToLayerPoint(l.marcador.getLatLng());
+      const g = grupos.find((g) => g.centro.distanceTo(p) < DISTANCIA);
+      if (g) g.membros.push(l);
+      else grupos.push({ centro: p, membros: [l] });
+    }
+    for (const { membros } of grupos) {
+      if (membros.length === 1) { camada.addLayer(membros[0].marcador); continue; }
+      const limites = L.latLngBounds(membros.map((m) => m.marcador.getLatLng()));
+      const n = membros.reduce((soma, m) => soma + m.n, 0);
+      const grupo = L.marker(limites.getCenter(), {
+        title: `${membros.length} cidades: ${n}. Toque para aproximar`,
+        alt: `${membros.length} cidades`,
+        riseOnHover: true,
+        icon: icone(n, 'grupo'),
+      });
+      grupo.on('click', () => mapa.flyToBounds(limites, { padding: [60, 60], maxZoom: ZOOM_CIDADE, duration: 0.8 }));
+      camada.addLayer(grupo);
+    }
+  };
+  mapa.on('zoomend', agrupar);
+
+  // Com o armário vazio, "Mundo" e a vista inicial mostram o Brasil
+  const todos = lugares.length ? L.latLngBounds(lugares.map((l) => l.marcador.getLatLng())) : BRASIL;
+  const enquadrar = (qual: string) => {
+    mapa.closePopup();
+    mapa.flyToBounds(qual === 'brasil' ? BRASIL : todos, { padding: [24, 24], maxZoom: 5, duration: 0.8 });
+  };
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-enquadrar]')) {
+    b.addEventListener('click', () => enquadrar(b.dataset.enquadrar!));
+  }
+
+  const irPara = (id: string, animar: boolean) => {
+    const m = marcadores.get(id);
+    if (!m) return false;
+    if (animar) {
+      mapa.once('moveend', () => m.openPopup());
+      mapa.flyTo(m.getLatLng(), ZOOM_CIDADE, { duration: 1.2 });
+    } else {
+      mapa.setView(m.getLatLng(), ZOOM_CIDADE);
+      m.openPopup();
+    }
+    return true;
+  };
+
+  // "Ver no mapa" na lista
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('[data-ver]')) {
+    a.hidden = false;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      caixa.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      irPara(a.dataset.ver!, true);
+    });
+  }
+
+  // Endereço com ?cidade=… (vindo da página da camisa) já abre na cidade
+  const pedida = new URLSearchParams(location.search).get('cidade');
+  if (!pedida || !irPara(pedida, false)) mapa.fitBounds(todos, { padding: [24, 24], maxZoom: 5 });
+</script>

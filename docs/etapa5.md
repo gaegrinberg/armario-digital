@@ -60,3 +60,18 @@ Uma consequência: várias cidades têm mais de um clube (Rio de Janeiro tem qua
 1. **Todas as ideias aprovadas**, com as recomendações da tabela: o mapa usa **OpenStreetMap com Leaflet**; comparação, linha do tempo e histórias ficam para depois.
 2. **Ideia nova, já feita:** o mapa de quadradinhos da página inicial passou a lembrar mais o contorno do Brasil, sem perder as linhas retas. A grade foi de 6 x 8 para 10 x 10, e os estados grandes ocupam mais de um quadrado (Amazonas 4 x 2, Pará e Mato Grosso 3 x 2, Bahia 2 x 2). Aparecem o Norte largo com Roraima e Amapá em cima, a ponta do Nordeste, o litoral descendo para o sudoeste e o Sul estreito. As posições ficam em `UFS`, em `src/opcoes.ts`.
 3. O resto (mapa com zoom, relacionadas, camisa do dia, estatísticas e arara do degradê) fica para outras sessões.
+
+## Feito: mapa com zoom até a cidade (17/10/2026)
+
+Página `/mapa/` (`src/pages/mapa.astro`), com "Mapa" no menu.
+
+- **Fundo:** OpenStreetMap pelo Leaflet 1.9.4, que entra pelo npm e só carrega nesta página (cerca de 42 KB comprimido). O mapa ganhou um filtro para combinar com o papel da arara e fica invertido no modo escuro. O crédito do OpenStreetMap aparece no canto.
+- **Um marcador por cidade**, com o número de camisas de lá. Vários clubes da mesma cidade dividem o marcador (o São Paulo e o Juventus da Mooca, por exemplo). A cidade do time do coração tem o marcador na cor de destaque e, no balão, o time do coração vem primeiro.
+- **Cidades próximas viram um marcador só** enquanto o zoom está longe (visto do mundo, o Sudeste inteiro vira "17"). Tocar no grupo aproxima até as cidades se separarem.
+- **Balão** com as camisas da cidade, foto pequena e link para a página de cada uma.
+- **Botões "Mundo" e "Brasil"** para enquadrar o mapa. A roda do mouse só dá zoom depois de um clique no mapa, para não prender a rolagem da página.
+- **Lista de cidades** abaixo do mapa, que funciona sem JavaScript. "Ver no mapa" voa até a cidade.
+- **Endereço por cidade:** `mapa/?cidade=rio-de-janeiro-brasil` já abre no Rio. Na página da camisa, a cidade da ficha virou link para esse endereço.
+- Para entrar no mapa, o clube precisa ter `coordenadas`. Um clube sem elas aparece numa nota no fim da página.
+
+Ajuste no topo de todas as páginas: com cinco botões, o menu quebrava em três linhas no celular. A chave de tema foi para a linha do título.
