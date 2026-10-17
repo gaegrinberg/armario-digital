@@ -1,0 +1,79 @@
+# A cada push na main: recorta o fundo das fotos novas, valida os dados, gera o site
+# e publica no GitHub Pages.
+name: Site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Um cadastro por vez; um push novo espera o anterior terminar
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  recorte:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.versao.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Procurar fotos sem recorte
+        id: pendentes
+        run: python3 scripts/recortar.py --listar >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v6
+        if: steps.pendentes.outputs.n != '0'
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      # O modelo tem 224 MB; baixa uma vez e fica guardado
+      - uses: actions/cache@v4
+        if: steps.pendentes.outputs.n != '0'
+        with:
+          path: ~/.u2net
+          key: rembg-birefnet-general-lite
+
+      - name: Recortar
+        if: steps.pendentes.outputs.n != '0'
+        run: |
+          pip install -r scripts/requirements.txt
+          python scripts/recortar.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/camisas
+          git commit -m "Recorta o fundo de ${{ steps.pendentes.outputs.n }} foto(s)"
+          git pull --rebase
+          git push
+
+      - name: Versão a publicar
+        id: versao
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: recorte
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.recorte.outputs.sha }}
+      - uses: withastro/action@v6
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
