@@ -6,6 +6,8 @@ Site pessoal para catalogar uma coleção de camisas de futebol, publicado em
 As camisas ficam penduradas numa arara por região do Brasil, com uma arara própria para o
 time do coração, outra para seleções e outra para clubes estrangeiros ("Gringas"). A grade
 tem busca, filtros e ordenação, e cada camisa tem uma página com fotos, história e ficha.
+O mapa mostra de onde vem cada camisa, com zoom até a cidade, e a página Números conta a
+coleção por região, país, fabricante, tipo, cor e temporada.
 
 O plano do projeto está em [`armario-digital-plano.md`](armario-digital-plano.md), e as
 decisões de design e arquitetura em [`docs/`](docs/).

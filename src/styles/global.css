@@ -62,8 +62,12 @@ img { max-width: 100%; height: auto; }
 /* ---------- Topo comum ---------- */
 .barra { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 16px 0 0; }
 .barra > :first-child { margin-right: auto; }
-/* No celular, a marca e a chave de tema dividem a primeira linha e as seções descem */
-@media (max-width: 559px) { .barra .nav { order: 1; flex-basis: 100%; } }
+/* No celular, a marca e a chave de tema dividem a primeira linha e as seções descem,
+   dividindo a linha entre os cinco botões (só quebram abaixo de uns 340 px) */
+@media (max-width: 559px) {
+  .barra .nav { order: 1; flex-basis: 100%; gap: 6px; }
+  .barra .nav .pilula { flex: 1 1 auto; padding: 0 6px; }
+}
 .marca {
   font-family: var(--fonte-placa); font-weight: 900; font-size: 1.5rem; line-height: 1;
   color: var(--texto); text-decoration: none;

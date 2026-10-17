@@ -1,0 +1,421 @@
+---
+// A coleção em números, contada no build e sem biblioteca de gráficos.
+// Cada barra é uma fileira de camisetas pequenas, uma por camisa, nas cores dela.
+import Base from '../layouts/Base.astro';
+import FotoCamisa from '../components/FotoCamisa.astro';
+import { CONFIG } from '../config';
+import { ARARA_GRINGAS, ARARA_SELECOES, CORES, REGIOES, TIPOS } from '../opcoes';
+import { chavesDeOrdem, lugarId, porTemporada, tipoCurto, todasAsCamisas, type Camisa } from '../lib/camisas';
+import { link } from '../lib/link';
+import { normalizar, slug } from '../lib/normalizar';
+
+const todas = await todasAsCamisas();
+const colecao = todas.filter((c) => c.status === 'colecao');
+const procuradas = todas.length - colecao.length;
+const total = colecao.length;
+
+const plural = (n: number, um: string, varios: string) => `${n.toLocaleString('pt-BR')} ${n === 1 ? um : varios}`;
+const distintos = (f: (c: Camisa) => string | undefined) => new Set(colecao.map(f).filter(Boolean)).size;
+
+// ---------- Placar ----------
+
+const placar = [
+  { n: total, um: 'camisa', varios: 'camisas' },
+  { n: distintos((c) => c.clubeId), um: 'clube ou seleção', varios: 'clubes e seleções' },
+  { n: distintos((c) => lugarId(c.clube)), um: 'cidade', varios: 'cidades' },
+  { n: distintos((c) => c.clube.uf), um: 'estado', varios: 'estados' },
+  { n: distintos((c) => c.clube.pais), um: 'país', varios: 'países' },
+  { n: distintos((c) => c.fabricante && normalizar(c.fabricante)), um: 'fabricante', varios: 'fabricantes' },
+  ...(procuradas ? [{ n: procuradas, um: 'procurada', varios: 'procuradas' }] : []),
+];
+
+// ---------- Fileiras ----------
+
+type Fileira = { rotulo: string; href?: string; cor?: string; camisas: Camisa[] };
+
+// Dentro da fileira, as camisetas vão na ordem das cores, para formar um degradê
+const ordemCor = (a: Camisa, b: Camisa) => chavesDeOrdem(a).cor.localeCompare(chavesDeOrdem(b).cor) || porTemporada(a, b);
+
+function agrupar(
+  chave: (c: Camisa) => string | undefined,
+  monta: (valor: string, c: Camisa) => Omit<Fileira, 'camisas'>,
+  lista = colecao,
+): Fileira[] {
+  const grupos = new Map<string, Fileira>();
+  for (const c of lista) {
+    const v = chave(c);
+    if (!v) continue;
+    if (!grupos.has(v)) grupos.set(v, { ...monta(v, c), camisas: [] });
+    grupos.get(v)!.camisas.push(c);
+  }
+  for (const g of grupos.values()) g.camisas.sort(ordemCor);
+  return [...grupos.values()].sort((a, b) => b.camisas.length - a.camisas.length || a.rotulo.localeCompare(b.rotulo, 'pt'));
+}
+
+const grade = (filtro: string, valor: string) => link(`grade/?${new URLSearchParams({ [filtro]: valor })}`);
+
+// Seleções e Gringas no fim, como na arara
+const posicaoFixa = (nome: string) => (nome === ARARA_SELECOES ? 1 : nome === ARARA_GRINGAS ? 2 : 0);
+const porArara = agrupar((c) => c.arara, (v) => ({ rotulo: v, href: `${link('')}#regiao-${slug(v)}` })).sort(
+  (a, b) => posicaoFixa(a.rotulo) - posicaoFixa(b.rotulo) || b.camisas.length - a.camisas.length ||
+    REGIOES.indexOf(a.rotulo as any) - REGIOES.indexOf(b.rotulo as any),
+);
+const porPais = agrupar((c) => c.clube.pais, (v) => ({ rotulo: v, href: grade('pais', v) }));
+const semFabricante = colecao.filter((c) => !c.fabricante).sort(ordemCor);
+const porFabricante = [
+  ...agrupar((c) => c.fabricante, (v) => ({ rotulo: v, href: grade('fabricante', v) })),
+  ...(semFabricante.length ? [{ rotulo: 'Sem fabricante', camisas: semFabricante }] : []),
+];
+const porTipo = agrupar((c) => c.tipo, (v, c) => ({ rotulo: TIPOS[c.tipo], href: grade('tipo', v) }));
+// Uma camisa conta em cada uma das cores dela
+const porCor = (Object.keys(CORES) as (keyof typeof CORES)[])
+  .map((cor) => ({
+    rotulo: CORES[cor].rotulo, cor: CORES[cor].hex, href: grade('cor', cor),
+    camisas: colecao.filter((c) => c.cores.includes(cor)).sort(ordemCor),
+  }))
+  .filter((f) => f.camisas.length)
+  .sort((a, b) => b.camisas.length - a.camisas.length);
+const presencas = porCor.reduce((s, f) => s + f.camisas.length, 0);
+
+const SECOES: { titulo: string; nota?: string; fileiras: Fileira[] }[] = [
+  { titulo: 'Por arara', fileiras: porArara },
+  { titulo: 'Por tipo', fileiras: porTipo },
+  { titulo: 'Por país', fileiras: porPais },
+  { titulo: 'Por fabricante', fileiras: porFabricante },
+];
+
+// ---------- Por ano (temporada e chegada ao armário) ----------
+
+// Uma coluna por ano, do primeiro ao último, com os anos vazios no meio
+function porAno(ano: (c: Camisa) => number | undefined) {
+  const anos = colecao.map(ano).filter((a): a is number => a !== undefined);
+  if (!anos.length) return [];
+  const [min, max] = [Math.min(...anos), Math.max(...anos)];
+  return Array.from({ length: max - min + 1 }, (_, i) => {
+    const a = min + i;
+    return { ano: a, camisas: colecao.filter((c) => ano(c) === a).sort(ordemCor) };
+  });
+}
+const colunasTemporada = porAno((c) => Number(c.temporada.slice(0, 4)));
+// Só aparece quando alguma camisa tiver a data de aquisição
+const colunasChegada = porAno((c) => (c.aquisicao ? Number(c.aquisicao.slice(0, 4)) : undefined));
+const maiorColuna = Math.max(1, ...colunasTemporada.map((c) => c.camisas.length), ...colunasChegada.map((c) => c.camisas.length));
+
+// ---------- Recordes ----------
+
+const porIdade = [...colecao].sort((a, b) => chavesDeOrdem(a).temporada.localeCompare(chavesDeOrdem(b).temporada));
+const maisAntiga = porIdade[0];
+const maisRecente = porIdade.at(-1);
+
+const clubes = agrupar((c) => c.clubeId, (_, c) => ({ rotulo: c.clube.nome, href: grade('clube', c.clubeId) }));
+const topClube = clubes[0]?.camisas.length > 1 ? clubes[0] : undefined;
+
+const cidades = agrupar((c) => (c.clube.coordenadas ? lugarId(c.clube) : undefined), (v, c) => ({
+  rotulo: c.clube.cidade, href: link(`mapa/?cidade=${v}`),
+}));
+const topCidade = cidades[0]?.camisas.length > 1 ? cidades[0] : undefined;
+
+// Distância em linha reta até a cidade do time do coração (fórmula de haversine)
+const casa = todas.find((c) => c.clubeId === CONFIG.timeDoCoracao)?.clube;
+function km(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
+  const rad = Math.PI / 180;
+  const h = Math.sin(((b.lat - a.lat) * rad) / 2) ** 2 +
+    Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(((b.lon - a.lon) * rad) / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+const maisLonge = casa?.coordenadas
+  ? colecao
+      .filter((c) => c.clube.coordenadas)
+      .map((c) => ({ camisa: c, km: km(casa.coordenadas!, c.clube.coordenadas!) }))
+      .sort((a, b) => b.km - a.km)[0]
+  : undefined;
+
+// 18.347 km vira 18.300; abaixo de mil, fica o número exato
+const arredondar = (n: number) => (n >= 1000 ? Math.round(n / 100) * 100 : Math.round(n));
+const maisRecenteDe = (lista: Camisa[]) => [...lista].sort(porTemporada)[0];
+const recordes = [
+  maisAntiga && { titulo: 'A temporada mais antiga', camisa: maisAntiga, texto: `${maisAntiga.clube.nome} ${maisAntiga.temporada}`, meta: tipoCurto(maisAntiga), href: link(`camisa/${maisAntiga.id}/`) },
+  maisRecente && maisRecente !== maisAntiga && { titulo: 'A temporada mais recente', camisa: maisRecente, texto: `${maisRecente.clube.nome} ${maisRecente.temporada}`, meta: tipoCurto(maisRecente), href: link(`camisa/${maisRecente.id}/`) },
+  topClube && { titulo: 'O clube com mais camisas', camisa: maisRecenteDe(topClube.camisas), texto: topClube.rotulo, meta: plural(topClube.camisas.length, 'camisa', 'camisas'), href: topClube.href },
+  topCidade && { titulo: 'A cidade com mais camisas', camisa: maisRecenteDe(topCidade.camisas), texto: topCidade.rotulo, meta: `${plural(topCidade.camisas.length, 'camisa', 'camisas')} de ${plural(new Set(topCidade.camisas.map((c) => c.clubeId)).size, 'clube', 'clubes')}`, href: topCidade.href },
+  maisLonge && maisLonge.km > 50 && { titulo: 'A que veio de mais longe', camisa: maisLonge.camisa, texto: `${maisLonge.camisa.clube.nome} ${maisLonge.camisa.temporada}`, meta: `${maisLonge.camisa.clube.cidade}, a ${arredondar(maisLonge.km).toLocaleString('pt-BR')} km de ${casa!.cidade}`, href: link(`camisa/${maisLonge.camisa.id}/`) },
+].filter(Boolean) as { titulo: string; camisa: Camisa; texto: string; meta: string; href: string }[];
+
+// ---------- Fichas ----------
+
+const CAMPOS: [string, (c: Camisa) => unknown][] = [
+  ['Foto da frente', (c) => c.frente],
+  ['Foto do verso', (c) => c.verso],
+  ['Fabricante', (c) => c.fabricante],
+  ['Patrocinador', (c) => c.patrocinador],
+  ['Tamanho', (c) => c.tamanho],
+  ['Conservação', (c) => c.conservacao],
+  ['Como chegou', (c) => c.origem],
+  ['Data de aquisição', (c) => c.aquisicao],
+  ['História', (c) => c.historia],
+];
+const fichas = CAMPOS.map(([rotulo, tem]) => ({ rotulo, n: colecao.filter((c) => tem(c)).length }));
+
+const cores = (c: Camisa) => {
+  const [c1, c2 = c1] = c.cores.map((cor) => CORES[cor].hex);
+  return `--c1:${c1};--c2:${c2}`;
+};
+const nomeCurto = (c: Camisa) => `${c.clube.nome} ${c.temporada}`;
+---
+<Base titulo="Números" atual="numeros" descricao="A coleção em números: por região, país, fabricante, tipo, cor e temporada.">
+  {/* A camiseta pequena das fileiras: corpo na cor 1, mangas na cor 2 */}
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="camiseta" viewBox="8 18 184 168">
+      <path d="M70 26 L46 35 L55 79 L54 180 L146 180 L145 79 L154 35 L130 26 Q100 46 70 26 Z" fill="var(--c1)" />
+      <path d="M46 35 L14 72 L36 94 L55 79 Z M154 35 L186 72 L164 94 L145 79 Z" fill="var(--c2)" />
+      <path d="M70 26 L46 35 L14 72 L36 94 L55 79 L54 180 L146 180 L145 79 L164 94 L186 72 L154 35 L130 26 Q100 46 70 26 Z"
+            fill="none" stroke="var(--contorno-mini)" stroke-width="11" stroke-linejoin="round" />
+    </symbol>
+  </svg>
+
+  <h1 class="titulo-pagina">Em números</h1>
+  <p class="subtitulo-pagina">A coleção contada de vários jeitos. Cada camisetinha é uma camisa; toque nela para abrir.</p>
+
+  {total === 0 ? (
+    <p class="vazio">Ainda não há camisas na coleção para contar.</p>
+  ) : (
+    <>
+      <section class="placar" aria-labelledby="placar-titulo">
+        <h2 id="placar-titulo">Placar do armário</h2>
+        <ul>
+          {placar.map((p) => (
+            <li>
+              <span class="placa-numero">{p.n.toLocaleString('pt-BR')}</span>
+              <span class="placa-rotulo">{p.n === 1 ? p.um : p.varios}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div class="secoes">
+        {SECOES.map((s) => (
+          <section class="secao">
+            <h2>{s.titulo}</h2>
+            <ul class="fileiras">
+              {s.fileiras.map((f) => (
+                <li class="fileira">
+                  {f.href ? <a class="fileira-rotulo" href={f.href}>{f.rotulo}</a> : <span class="fileira-rotulo">{f.rotulo}</span>}
+                  <span class="oculto">: {plural(f.camisas.length, 'camisa', 'camisas')}</span>
+                  <span class="minis" aria-hidden="true">
+                    {f.camisas.map((c) => (
+                      <a href={link(`camisa/${c.id}/`)} tabindex="-1"><svg class="mini" viewBox="8 18 184 168"><title>{nomeCurto(c)}</title><use href="#camiseta" style={cores(c)} /></svg></a>
+                    ))}
+                  </span>
+                  <span class="fileira-n" aria-hidden="true">{f.camisas.length}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+
+        <section class="secao larga">
+          <h2>Por cor</h2>
+          <p class="nota">Uma camisa conta em cada cor que tem.</p>
+          <div class="faixa-cores" aria-hidden="true">
+            {porCor.map((f) => <span style={`flex:${f.camisas.length};background:${f.cor}`} title={`${f.rotulo} · ${f.camisas.length}`} />)}
+          </div>
+          <ul class="fileiras">
+            {porCor.map((f) => (
+              <li class="fileira">
+                <a class="fileira-rotulo" href={f.href}><span class="amostra" style={`background:${f.cor}`} />{f.rotulo}</a>
+                <span class="oculto">: {plural(f.camisas.length, 'camisa', 'camisas')}, {Math.round((f.camisas.length / presencas) * 100)}% das cores</span>
+                <span class="minis" aria-hidden="true">
+                  {f.camisas.map((c) => (
+                    <a href={link(`camisa/${c.id}/`)} tabindex="-1"><svg class="mini" viewBox="8 18 184 168"><title>{nomeCurto(c)}</title><use href="#camiseta" style={cores(c)} /></svg></a>
+                  ))}
+                </span>
+                <span class="fileira-n" aria-hidden="true">{f.camisas.length}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      {[
+        { titulo: 'Por temporada', nota: 'Uma coluna por ano, do mais antigo ao mais recente. A temporada 2021/22 conta em 2021.', colunas: colunasTemporada },
+        { titulo: 'Chegada ao armário', nota: 'Pelo ano da data de aquisição. Só entram as camisas que têm a data.', colunas: colunasChegada },
+      ].filter((s) => s.colunas.length).map((s) => (
+        <section class="secao larga">
+          <h2>{s.titulo}</h2>
+          <p class="nota">{s.nota}</p>
+          <div class="colunas-rolagem" data-rolar-fim>
+            <ol class="colunas" style={`--maior:${maiorColuna}`}>
+              {s.colunas.map((col) => (
+                <li class:list={['coluna', { vazia: !col.camisas.length }]}>
+                  <span class="oculto">{col.ano}: {plural(col.camisas.length, 'camisa', 'camisas')}</span>
+                  <span class="pilha" aria-hidden="true">
+                    {col.camisas.map((c) => (
+                      <a href={link(`camisa/${c.id}/`)} tabindex="-1"><svg class="mini" viewBox="8 18 184 168"><title>{nomeCurto(c)}</title><use href="#camiseta" style={cores(c)} /></svg></a>
+                    ))}
+                  </span>
+                  <span class="ano" aria-hidden="true" title={String(col.ano)}>’{String(col.ano).slice(2)}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      ))}
+
+      {recordes.length > 0 && (
+        <section class="secao larga">
+          <h2>Recordes</h2>
+          <ul class="recordes">
+            {recordes.map((r) => (
+              <li>
+                <a class="recorde" href={r.href}>
+                  <span class="recorde-foto"><FotoCamisa camisa={r.camisa} tamanho="mini" rotulo={false} /></span>
+                  <span class="recorde-texto">
+                    <span class="recorde-titulo">{r.titulo}</span>
+                    <strong>{r.texto}</strong>
+                    <span class="recorde-meta">{r.meta}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section class="secao larga">
+        <h2>Fichas preenchidas</h2>
+        <p class="nota">Quantas das {plural(total, 'camisa', 'camisas')} já têm cada informação.</p>
+        <ul class="fichas">
+          {fichas.map((f) => (
+            <li>
+              <span class="ficha-rotulo">{f.rotulo}</span>
+              <span class="ficha-barra" aria-hidden="true"><span style={`width:${(f.n / total) * 100}%`} /></span>
+              <span class="ficha-n">{f.n} de {total}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </>
+  )}
+</Base>
+
+<style>
+  /* ---------- Placar: placas pintadas penduradas num quadro, como num placar de várzea ---------- */
+  .placar {
+    margin: 22px -16px 0; padding: 14px 16px 18px;
+    background: #1F3B2E; color: #F2EBDD;
+    border-block: 6px solid #6B4A2B;
+  }
+  @media (min-width: 760px) { .placar { margin-inline: 0; border: 6px solid #6B4A2B; border-radius: 6px; padding: 16px 20px 22px; } }
+  .placar h2 {
+    margin: 0 0 12px; font-family: var(--fonte-placa); font-weight: 900; font-size: 1.25rem;
+    letter-spacing: 0.06em; text-transform: uppercase; text-align: center;
+  }
+  .placar ul {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(98px, 1fr)); gap: 16px 10px;
+  }
+  .placar li {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 14px 6px 8px; background: #F7F1E1; color: #1F1A14;
+    border-radius: 3px 6px 4px 7px / 7px 4px 6px 3px; box-shadow: 2px 3px 0 rgb(0 0 0 / 0.35);
+    text-align: center;
+  }
+  .placar li:nth-child(odd) { transform: rotate(-1deg); }
+  .placar li:nth-child(even) { transform: rotate(0.8deg); }
+  /* O prego que segura a placa */
+  .placar li::before {
+    content: ''; position: absolute; top: 4px; left: 50%; width: 6px; height: 6px; margin-left: -3px;
+    border-radius: 50%; background: #8C9097; box-shadow: 0 1px 0 rgb(0 0 0 / 0.4);
+  }
+  .placa-numero { font-family: var(--fonte-placa); font-weight: 900; font-size: 2.5rem; line-height: 1; }
+  .placa-rotulo { font: 600 0.75rem/1.2 var(--fonte-titulo); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* ---------- Seções ---------- */
+  .secoes { display: grid; gap: 0 48px; }
+  @media (min-width: 900px) { .secoes { grid-template-columns: 1fr 1fr; } }
+  .secao { margin-top: 36px; min-width: 0; }
+  .secoes .larga { grid-column: 1 / -1; }
+  .secao h2 {
+    margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.125rem;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .nota { margin: 2px 0 0; color: var(--texto-2); font-size: 0.875rem; }
+
+  .fileiras { list-style: none; margin: 8px 0 0; padding: 0; }
+  .fileira {
+    display: grid; grid-template-columns: minmax(6.5rem, 9rem) 1fr auto; align-items: center; gap: 4px 12px;
+    padding: 7px 0; border-bottom: 1px dashed var(--borda);
+  }
+  .fileira-rotulo { color: var(--texto); font-size: 0.9375rem; line-height: 1.25; text-decoration: none; }
+  a.fileira-rotulo:hover { color: var(--acento); text-decoration: underline; }
+  span.fileira-rotulo { color: var(--texto-2); }
+  .fileira-n { font: 700 1.0625rem/1 var(--fonte-titulo); font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+  .amostra {
+    display: inline-block; width: 12px; height: 12px; margin-right: 7px; vertical-align: -1px;
+    border-radius: 2px; box-shadow: inset 0 0 0 1px var(--contorno-camisa);
+  }
+
+  /* Contorno mais forte que o da silhueta grande, para a camiseta preta não sumir no modo escuro */
+  :global(:root) { --contorno-mini: rgb(0 0 0 / 0.38); }
+  @media (prefers-color-scheme: dark) { :global(:root:not([data-theme="light"])) { --contorno-mini: rgb(255 255 255 / 0.5); } }
+  :global(:root[data-theme="dark"]) { --contorno-mini: rgb(255 255 255 / 0.5); }
+
+  .minis { display: flex; flex-wrap: wrap; gap: 3px 2px; min-width: 0; }
+  .minis a, .pilha a { display: block; line-height: 0; }
+  .mini { display: block; width: 24px; height: 22px; }
+  .minis a:hover .mini, .pilha a:hover .mini { transform: translateY(-2px) rotate(-4deg); }
+  @media (prefers-reduced-motion: reduce) { .minis a:hover .mini, .pilha a:hover .mini { transform: none; } }
+
+  .faixa-cores {
+    display: flex; height: 16px; margin-top: 10px; overflow: hidden;
+    border: 1px solid var(--contorno-mini); border-radius: 3px;
+  }
+
+  /* ---------- Colunas por ano ---------- */
+  .colunas-rolagem { overflow-x: auto; margin: 10px -16px 0; padding: 0 16px 6px; scrollbar-width: thin; }
+  .colunas {
+    list-style: none; margin: 0; padding: 0; display: flex; align-items: flex-end;
+    min-height: calc(var(--maior) * 25px + 30px);
+  }
+  .coluna { position: relative; flex: 1 0 29px; display: flex; flex-direction: column; }
+  /* A barra de metal embaixo das pilhas, como a da arara */
+  .pilha {
+    display: flex; flex-direction: column-reverse; align-items: center; gap: 3px;
+    padding-bottom: 5px; border-bottom: 3px solid var(--metal);
+  }
+  .ano { padding-top: 5px; text-align: center; font: 600 0.75rem/1 var(--fonte-titulo); font-variant-numeric: tabular-nums; }
+  .coluna.vazia .ano { color: var(--texto-2); opacity: 0.6; }
+
+  /* ---------- Recordes ---------- */
+  .recordes {
+    list-style: none; margin: 10px 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;
+  }
+  .recorde {
+    display: flex; align-items: center; gap: 12px; height: 100%; padding: 10px 14px 10px 10px;
+    background: var(--etiqueta); border: 1px solid var(--borda); border-radius: var(--raio);
+    color: var(--texto); text-decoration: none;
+  }
+  .recorde:hover { border-color: var(--texto-2); }
+  .recorde-foto { flex: none; width: 64px; }
+  .recorde-foto :global(.silhueta) { aspect-ratio: 1 / 0.92; }
+  .recorde-foto :global(.foto-recorte) { width: 64px; height: 68px; object-fit: contain; filter: none; }
+  .recorde-foto :global(.foto-placa) { width: 64px; height: 68px; }
+  .recorde-texto { display: flex; flex-direction: column; min-width: 0; }
+  .recorde-titulo { color: var(--acento); font: 700 0.75rem/1.25 var(--fonte-titulo); letter-spacing: 0.06em; text-transform: uppercase; }
+  .recorde strong { font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.125rem; line-height: 1.2; }
+  .recorde-meta { color: var(--texto-2); font-size: 0.875rem; }
+
+  /* ---------- Fichas ---------- */
+  .fichas { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px 48px; }
+  @media (min-width: 900px) { .fichas { grid-template-columns: 1fr 1fr; } }
+  .fichas li { display: grid; grid-template-columns: 9rem 1fr auto; align-items: center; gap: 12px; font-size: 0.9375rem; }
+  .ficha-barra { height: 8px; border-radius: 4px; background: var(--placa); box-shadow: inset 0 0 0 1px var(--borda); overflow: hidden; }
+  .ficha-barra span { display: block; height: 100%; background: var(--acento); }
+  .ficha-n { color: var(--texto-2); font-size: 0.875rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>
+
+<script>
+  // No celular as colunas por ano não cabem: a rolagem começa no ano mais recente
+  for (const r of document.querySelectorAll<HTMLElement>('[data-rolar-fim]')) r.scrollLeft = r.scrollWidth;
+</script>

@@ -96,3 +96,16 @@ No topo da arara, entre o título e a busca, uma camisa pendurada num prego ao l
 - **Texto:** clube, temporada, tipo, fabricante, cidade (ou "Seleção · país"), quantas camisas daquele clube há na coleção e o começo da história, quando houver.
 - **"Sortear outra"** troca por uma camisa qualquer e muda o título para "Sorteada agora". "Voltar à do dia" desfaz.
 - A busca e o filtro dos cabides vazios não mexem nesse destaque.
+
+## Feito: estatísticas (17/10/2026)
+
+Página `/numeros/` (`src/pages/numeros.astro`), com "Números" no menu. Tudo é contado no build, sem biblioteca de gráficos e sem JavaScript (só uma linha que rola as colunas por ano até o fim no celular).
+
+- **Placar do armário** no topo: placas pintadas penduradas num quadro verde, como um placar manual de várzea. Camisas, clubes e seleções, cidades, estados, países e fabricantes. As procuradas entram quando houver camisas na lista de desejos.
+- **Fileiras de camisetinhas** em vez de barras: cada camisa da coleção vira uma camiseta pequena com o corpo na cor 1 e as mangas na cor 2. Dentro da fileira elas vão na ordem das cores. Tocar numa camiseta abre a camisa; o nome da fileira leva à grade já filtrada (ou à arara da região). Seções: por arara, tipo, país, fabricante e cor. Na cor, uma camisa conta em cada cor que tem, e uma faixa no topo mostra a proporção.
+- **Por temporada**, em vez de década (você pediu para não separar por década): uma coluna por ano, de 1996 a 2026, com os anos vazios no meio. 2021/22 conta em 2021.
+- **Chegada ao armário**: as mesmas colunas pelo ano da data de aquisição. É a "evolução da coleção" e só aparece quando alguma camisa tiver a data (testado com duas datas provisórias, já desfeitas).
+- **Recordes**: temporada mais antiga e mais recente, clube e cidade com mais camisas e a que veio de mais longe (em linha reta da cidade do time do coração; hoje, Coreia do Sul, a 18.300 km de São Paulo).
+- **Fichas preenchidas**: quantas camisas têm cada campo (fotos, fabricante, patrocinador, tamanho, conservação, como chegou, data e história). Serve de lembrete do que falta completar pelo CMS.
+
+Ajuste no topo de todas as páginas: com seis botões, o menu quebrava em duas linhas no celular. No celular, os botões agora dividem a linha e ficam com menos margem interna.
