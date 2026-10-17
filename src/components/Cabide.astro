@@ -10,8 +10,10 @@ interface Props {
   prioridade?: boolean;
   // Por que ela aparece aqui (nas relacionadas da página da camisa)
   motivo?: string;
+  // Posição em cada ordem da arara (posicoesNaArara), para o navegador reordenar
+  posicoes?: Record<string, number>;
 }
-const { camisa: c, prioridade, motivo } = Astro.props;
+const { camisa: c, prioridade, motivo, posicoes = {} } = Astro.props;
 const vazio = c.status === 'desejo';
 ---
 <a
@@ -19,6 +21,7 @@ const vazio = c.status === 'desejo';
   href={link(`camisa/${c.id}/`)}
   data-busca={c.busca}
   data-status={c.status}
+  {...Object.fromEntries(Object.entries(posicoes).map(([ordem, i]) => [`data-o-${ordem}`, i]))}
   aria-label={`${c.clube.nome} ${c.temporada}, ${tipoCurto(c)}${vazio ? ', lista de desejos' : ''}`}
 >
   <div class="pendurado">

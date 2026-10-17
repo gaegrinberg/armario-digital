@@ -2,6 +2,7 @@
 // (arara, década, fotos, texto de busca). Todas as páginas leem daqui.
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { ImageMetadata } from 'astro';
+import sharp from 'sharp';
 import {
   ARARA_GRINGAS, ARARA_SELECOES, CONSERVACAO, CORES, MANGAS, ORIGENS, PADROES, TIPOS, UFS, VERSOES,
 } from '../opcoes';
@@ -17,6 +18,8 @@ export type Foto = {
   original: ImageMetadata;
   // Versão com o fundo removido (frente.recorte.webp ao lado de frente.webp), se já existir
   recorte?: ImageMetadata;
+  // Caminho do recorte no disco, para medir a cor da camisa
+  arquivoRecorte?: string;
   legenda?: string;
 };
 
@@ -32,6 +35,8 @@ export type Camisa = CollectionEntry<'camisas'>['data'] & {
   detalhes: Foto[];
   busca: string;
   historia: string;
+  // Claridade (0 a 1) e cor média medidas na foto recortada da frente
+  tom?: { claridade: number; hex: string };
 };
 
 export { normalizar };
@@ -44,8 +49,9 @@ function resolverFoto(entrada: CollectionEntry<'camisas'>, arquivo: string | und
   if (!original) {
     throw new Error(`camisas → ${entrada.id}: a foto "${arquivo}" não existe na pasta ${pasta.slice(1)}`);
   }
-  const recorte = IMAGENS[caminho.replace(/\.[a-z]+$/i, '.recorte.webp')];
-  return { original, recorte, legenda };
+  const caminhoRecorte = caminho.replace(/\.[a-z]+$/i, '.recorte.webp');
+  const recorte = IMAGENS[caminhoRecorte];
+  return { original, recorte, arquivoRecorte: recorte && process.cwd() + caminhoRecorte, legenda };
 }
 
 function araraDe(clube: CollectionEntry<'clubes'>['data']) {
@@ -89,7 +95,41 @@ export async function todasAsCamisas(): Promise<Camisa[]> {
     );
     return camisa;
   });
+  await Promise.all(cache.map(async (c) => (c.tom = await medirTom(c.frente?.arquivoRecorte))));
   return cache;
+}
+
+// ---------- Cor medida na foto ----------
+
+const linear = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+const gama = (v: number) => Math.round(255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055));
+
+// Luminosidade (o L do OKLab) de uma cor em RGB linear: 0 é o preto, 1 é o branco.
+// O OKLab segue o olho: o amarelo sai mais claro que o azul-claro, e o azul mais escuro que o vermelho.
+function luminosidade(r: number, g: number, b: number) {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+}
+
+const luminosidadeHex = (hex: string) =>
+  luminosidade(...([1, 3, 5].map((i) => linear(parseInt(hex.slice(i, i + 2), 16) / 255)) as [number, number, number]));
+
+// Média dos pontos do pano na foto recortada (o fundo transparente fica de fora), numa cópia pequena.
+// Mede o que se vê: o lilás do Real Madrid, que na paleta virou roxo, sai claro como é.
+async function medirTom(arquivo?: string): Promise<Camisa['tom']> {
+  if (!arquivo) return undefined;
+  const { data } = await sharp(arquivo).resize(64, 64, { fit: 'inside' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let n = 0, soma = 0, r = 0, g = 0, b = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 200) continue;
+    const [pr, pg, pb] = [data[i], data[i + 1], data[i + 2]].map((v) => linear(v / 255));
+    soma += luminosidade(pr, pg, pb);
+    r += pr; g += pg; b += pb; n++;
+  }
+  if (!n) return undefined;
+  return { claridade: soma / n, hex: '#' + [r, g, b].map((v) => gama(v / n).toString(16).padStart(2, '0')).join('') };
 }
 
 // ---------- Rótulos ----------
@@ -135,13 +175,63 @@ export function chavesDeOrdem(c: Camisa) {
   };
 }
 
+const desejoNoFim = (a: Camisa, b: Camisa) => Number(a.status === 'desejo') - Number(b.status === 'desejo');
+const porNome = (a: Camisa, b: Camisa) => a.clube.nome.localeCompare(b.clube.nome, 'pt') || a.id.localeCompare(b.id);
+
 // Mais recente primeiro, procuradas no fim
 export function porTemporada(a: Camisa, b: Camisa) {
+  return desejoNoFim(a, b) || b.temporada.localeCompare(a.temporada) || porNome(a, b);
+}
+
+// Quão clara a camisa parece, medida na foto. Sem foto recortada (a lista de desejos, ou uma
+// camisa recém-cadastrada), vale a média das cores da paleta: a cor 1 manda; em listras e metade,
+// as duas primeiras dividem o pano por igual; a terceira é quase só detalhe.
+export function claridade(c: Camisa) {
+  if (c.tom) return c.tom.claridade;
+  const dividida = ['listras-verticais', 'listras-horizontais', 'metade'].includes(c.padrao);
+  const pesos = dividida ? [1, 1, 0.3] : [1, 0.35, 0.15];
+  let soma = 0, total = 0;
+  c.cores.forEach((cor, i) => {
+    soma += luminosidadeHex(CORES[cor].hex) * pesos[i];
+    total += pesos[i];
+  });
+  return soma / total;
+}
+
+// Mais clara primeiro; no empate, a ordem da paleta junta as da mesma cor
+function porClaridade(a: Camisa, b: Camisa) {
   return (
-    Number(a.status === 'desejo') - Number(b.status === 'desejo') ||
-    b.temporada.localeCompare(a.temporada) ||
-    a.clube.nome.localeCompare(b.clube.nome, 'pt')
+    claridade(b) - claridade(a) ||
+    ORDEM_CORES.indexOf(a.cores[0]) - ORDEM_CORES.indexOf(b.cores[0]) ||
+    porNome(a, b)
   );
+}
+
+// Ordens de cada arara da página inicial. As procuradas (cabides vazios) ficam sempre no fim.
+export const ORDENS_ARARA = {
+  recente: 'Mais recente',
+  antiga: 'Mais antiga',
+  claro: 'Degradê: claro → escuro',
+  escuro: 'Degradê: escuro → claro',
+} as const;
+export type OrdemArara = keyof typeof ORDENS_ARARA;
+
+const COMPARAR: Record<OrdemArara, (a: Camisa, b: Camisa) => number> = {
+  recente: porTemporada,
+  antiga: (a, b) => desejoNoFim(a, b) || a.temporada.localeCompare(b.temporada) || porNome(a, b),
+  claro: (a, b) => desejoNoFim(a, b) || porClaridade(a, b),
+  escuro: (a, b) => desejoNoFim(a, b) || porClaridade(b, a),
+};
+
+export const ordenarArara = (lista: Camisa[], ordem: OrdemArara) => [...lista].sort(COMPARAR[ordem]);
+
+// Posição de cada camisa em cada ordem, gravada no HTML para a arara reordenar sem recarregar
+export function posicoesNaArara(camisas: Camisa[]) {
+  const posicoes = new Map<string, Record<string, number>>(camisas.map((c) => [c.id, {}]));
+  for (const ordem of Object.keys(COMPARAR) as OrdemArara[]) {
+    ordenarArara(camisas, ordem).forEach((c, i) => (posicoes.get(c.id)![ordem] = i));
+  }
+  return posicoes;
 }
 
 // ---------- Lugares (mapa) ----------

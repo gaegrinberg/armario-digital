@@ -1,12 +1,13 @@
 ---
 // Tela principal: a camisa do dia, uma arara por região do Brasil, a arara do coração em destaque,
-// depois Seleções e Gringas. Camisas desejadas aparecem como cabides vazios.
+// depois Seleções, Gringas e a arara do degradê, com a coleção inteira na ordem da claridade.
+// Camisas desejadas aparecem como cabides vazios. Uma escolha de ordem vale para todas as araras.
 import Base from '../layouts/Base.astro';
 import Cabide from '../components/Cabide.astro';
 import CamisaDoDia from '../components/CamisaDoDia.astro';
 import { CONFIG } from '../config';
 import { ARARA_GRINGAS, ARARA_SELECOES, CORES, REGIOES, UFS } from '../opcoes';
-import { porTemporada, todasAsCamisas, type Camisa } from '../lib/camisas';
+import { ORDENS_ARARA, ordenarArara, porTemporada, posicoesNaArara, todasAsCamisas, type Camisa } from '../lib/camisas';
 import { link } from '../lib/link';
 import { slug } from '../lib/normalizar';
 
@@ -43,6 +44,11 @@ const legendaConta = (lista: Camisa[]) => {
   return plural(tem, 'camisa', 'camisas') + (procuradas ? ` · ${plural(procuradas, 'procurada', 'procuradas')}` : '');
 };
 let primeiro = 0;
+
+const posicoes = posicoesNaArara(camisas);
+// A arara do degradê só tem camisas da coleção e só as duas ordens de cor
+const degrade = ordenarArara(colecao, 'claro');
+const SENTIDO = { claro: 'da mais clara à mais escura', escuro: 'da mais escura à mais clara' };
 ---
 <Base atual="arara">
   <header class="topo">
@@ -78,8 +84,18 @@ let primeiro = 0;
   <div class="controles">
     <label class="oculto" for="busca">Buscar</label>
     <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, estado, história…" autocomplete="off" />
-    {/* Sem nenhuma camisa desejada, a chave não serve para nada */}
-    <label class="check" hidden={!camisas.some((c) => c.status === 'desejo')}><input type="checkbox" id="vazios" checked /> Mostrar cabides vazios (lista de desejos)</label>
+    <div class="linha-controles">
+      <label class="ordem" hidden>
+        <span>Ordenar as araras</span>
+        <span class="ordem-pilula">
+          <select id="ordem">
+            {Object.entries(ORDENS_ARARA).map(([v, r]) => <option value={v}>{r}</option>)}
+          </select>
+        </span>
+      </label>
+      {/* Sem nenhuma camisa desejada, a chave não serve para nada */}
+      <label class="check" hidden={!camisas.some((c) => c.status === 'desejo')}><input type="checkbox" id="vazios" checked /> Mostrar cabides vazios (lista de desejos)</label>
+    </div>
   </div>
 
   <div id="regioes">
@@ -115,7 +131,7 @@ let primeiro = 0;
                 </div>
               </div>
               <div class="trilho grande" id={`${id}-coracao-trilho`} role="group" aria-labelledby={`${id}-coracao`}>
-                {doCoracao.map((c) => <Cabide camisa={c} prioridade={primeiro++ < 3} />)}
+                {doCoracao.map((c) => <Cabide camisa={c} prioridade={primeiro++ < 3} posicoes={posicoes.get(c.id)} />)}
               </div>
             </div>
           )}
@@ -131,13 +147,37 @@ let primeiro = 0;
                 </div>
               )}
               <div class="trilho" id={`${id}-trilho`} role="group" aria-labelledby={doCoracao.length ? `${id}-outros` : `${id}-placa`}>
-                {outros.map((c) => <Cabide camisa={c} prioridade={primeiro++ < 3} />)}
+                {outros.map((c) => <Cabide camisa={c} prioridade={primeiro++ < 3} posicoes={posicoes.get(c.id)} />)}
               </div>
             </div>
           )}
         </section>
       );
     })}
+    {degrade.length > 1 && (
+      <section class="regiao degrade" id="regiao-degrade" data-arara>
+        <div class="regiao-topo">
+          <h2 class="placa-pintada" id="arara-degrade-placa">Degradê</h2>
+          <p class="regiao-conta">
+            A coleção inteira, <span data-sentido={JSON.stringify(SENTIDO)}>{SENTIDO.claro}</span>
+          </p>
+          <div class="setas" hidden>
+            <button type="button" data-rolar="-1" data-alvo="arara-degrade-trilho" aria-label="Voltar na arara">‹</button>
+            <button type="button" data-rolar="1" data-alvo="arara-degrade-trilho" aria-label="Avançar na arara">›</button>
+          </div>
+        </div>
+        {/* Cartela de tinta: uma amostra por camisa, na cor média da foto */}
+        <div class="cartela" aria-hidden="true">
+          {degrade.map((c) => (
+            <span data-href={link(`camisa/${c.id}/`)} {...Object.fromEntries(Object.entries(posicoes.get(c.id)!).map(([o, i]) => [`data-o-${o}`, i]))}
+                  style={`background:${c.tom?.hex ?? CORES[c.cores[0]].hex}`} />
+          ))}
+        </div>
+        <div class="trilho" id="arara-degrade-trilho" role="group" aria-labelledby="arara-degrade-placa">
+          {degrade.map((c) => <Cabide camisa={c} posicoes={posicoes.get(c.id)} />)}
+        </div>
+      </section>
+    )}
     <p class="vazio" id="nada" hidden>
       {camisas.length ? 'Nenhuma camisa encontrada.' : (
         <>O armário ainda está vazio. Cadastre a primeira camisa em <a href={link('admin/')}>/admin/</a>.</>
@@ -182,6 +222,27 @@ let primeiro = 0;
   .regiao:nth-of-type(even) .placa-pintada { transform: rotate(0.9deg); }
   .regiao-conta { margin: 0; color: var(--texto-2); font-size: 0.9375rem; }
   .regiao-topo .setas { margin-left: auto; }
+
+  .linha-controles { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 20px; }
+  /* Seletor de ordem: uma pílula com o nome da ordem e uma setinha */
+  .ordem { display: inline-flex; align-items: center; gap: 10px; color: var(--texto-2); }
+  .ordem-pilula { position: relative; display: inline-flex; }
+  .ordem select {
+    appearance: none; min-height: 44px; padding: 0 34px 0 14px;
+    border: 1px solid var(--borda); border-radius: 999px; background: var(--superficie);
+    color: var(--texto-2); font-size: 0.875rem; cursor: pointer;
+  }
+  .ordem select:hover { border-color: var(--texto-2); }
+  .ordem-pilula::after {
+    content: ''; position: absolute; right: 15px; top: 50%; width: 6px; height: 6px; margin-top: -5px;
+    border: solid var(--texto-2); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); pointer-events: none;
+  }
+
+  .cartela {
+    display: flex; height: 22px; margin: 4px 0 14px; padding: 3px;
+    background: var(--placa-pintada); border: 1px solid var(--borda); border-radius: 3px;
+  }
+  .cartela span { flex: 1; min-width: 0; }
 
   .sub-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 2px; }
   .sub-topo h3 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.125rem; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -244,8 +305,54 @@ let primeiro = 0;
     termo ? url.searchParams.set('q', busca.value.trim()) : url.searchParams.delete('q');
     vazios.checked ? url.searchParams.delete('vazios') : url.searchParams.set('vazios', 'nao');
     history.replaceState(null, '', url);
+    // A cartela do degradê esconde a amostra das camisas que a busca tirou
+    for (const amostra of document.querySelectorAll<HTMLElement>('.cartela [data-href]')) {
+      amostra.hidden = !!document.querySelector(`#regiao-degrade .cabide[href="${amostra.dataset.href}"][hidden]`);
+    }
     medir();
   }
+
+  // Ordem das araras: os cabides trazem a posição em cada ordem (data-o-recente, data-o-claro…)
+  // e o navegador só os reordena. Vale para todas as araras e fica na URL (?ordem=antiga).
+  // A arara do degradê é sempre por cor: ela só inverte o sentido quando a escolha é escuro → claro.
+  const ordem = document.getElementById('ordem') as HTMLSelectElement;
+  const PADRAO = 'recente';
+
+  function ordenar() {
+    const valor = ordem.value;
+    for (const fila of document.querySelectorAll<HTMLElement>('.trilho, .cartela')) {
+      const daFila = fila.closest('#regiao-degrade') ? (valor === 'escuro' ? 'escuro' : 'claro') : valor;
+      const chave = 'o' + daFila[0].toUpperCase() + daFila.slice(1);
+      const posicao = (el: Element) => Number((el as HTMLElement).dataset[chave]);
+      fila.append(...[...fila.children].sort((a, b) => posicao(a) - posicao(b)));
+      fila.scrollLeft = 0;
+    }
+    const sentido = document.querySelector<HTMLElement>('[data-sentido]');
+    if (sentido) sentido.textContent = JSON.parse(sentido.dataset.sentido!)[valor === 'escuro' ? 'escuro' : 'claro'];
+  }
+
+  const pedida = params.get('ordem');
+  ordem.value = [...ordem.options].some((o) => o.value === pedida) ? pedida! : PADRAO;
+  ordem.closest('label')!.hidden = false;
+  if (ordem.value !== PADRAO) ordenar();
+
+  ordem.addEventListener('change', () => {
+    // As camisas que estão à vista deslizam até o lugar novo, onde o navegador sabe fazer isso
+    const visiveis = [...document.querySelectorAll<HTMLElement>('.cabide:not([hidden])')].filter((c) => {
+      const r = c.getBoundingClientRect();
+      return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+    });
+    if (!document.startViewTransition || semMovimento.matches) ordenar();
+    else {
+      visiveis.forEach((c, i) => (c.style.viewTransitionName = 'cabide-' + i));
+      document.startViewTransition(ordenar).finished.finally(() => {
+        for (const c of visiveis) c.style.viewTransitionName = '';
+      });
+    }
+    const url = new URL(location.href);
+    ordem.value === PADRAO ? url.searchParams.delete('ordem') : url.searchParams.set('ordem', ordem.value);
+    history.replaceState(null, '', url);
+  });
 
   // A barra da arara acompanha a largura total; as setas só aparecem quando a arara não cabe
   function medir() {

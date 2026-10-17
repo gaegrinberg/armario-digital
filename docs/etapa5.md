@@ -109,3 +109,12 @@ Página `/numeros/` (`src/pages/numeros.astro`), com "Números" no menu. Tudo é
 - **Fichas preenchidas**: quantas camisas têm cada campo (fotos, fabricante, patrocinador, tamanho, conservação, como chegou, data e história). Serve de lembrete do que falta completar pelo CMS.
 
 Ajuste no topo de todas as páginas: com seis botões, o menu quebrava em duas linhas no celular. No celular, os botões agora dividem a linha e ficam com menos margem interna.
+
+## Feito: arara do degradê e ordem das araras (17/10/2026)
+
+**Ordenar as araras**, ao lado da busca na página inicial, vale para todas as araras de uma vez: *Mais recente* (o padrão), *Mais antiga*, *Degradê: claro → escuro* e *Degradê: escuro → claro*. A escolha fica na URL (`?ordem=claro`), junto com a busca. Os cabides vazios da lista de desejos ficam sempre no fim. Na primeira ideia, cada arara tinha o próprio seletor; você preferiu um só para todas.
+
+- **Sem recarregar:** o build grava em cada cabide a posição dele em cada ordem (`posicoesNaArara`, em `src/lib/camisas.ts`) e o navegador só troca os cabides de lugar. Onde o navegador permite, as camisas à vista deslizam até o lugar novo. Sem JavaScript, o seletor não aparece e vale a mais recente.
+- **A arara do degradê** fica no fim da página, com a coleção inteira (sem a lista de desejos) da mais clara à mais escura. Em cima dela, uma **cartela de tinta** com uma amostra por camisa. Ela é sempre por cor: com *escuro → claro* ela inverte o sentido; com as ordens de data ela continua clara → escura.
+- **A claridade é medida na foto**, não nas cores cadastradas. O build lê o recorte da frente (com o `sharp`, que agora está no `package.json`), tira a média da luminosidade do pano (o L do OKLab, que segue o olho) e a cor média, que pinta a amostra da cartela. Pelas cores cadastradas, o Real Madrid lilás contava como roxo e o Barcelona verde-limão como verde-escuro, e o degradê ficava com saltos. Uma camisa sem recorte usa a média das cores da paleta.
+- Hoje a ordem vai do Barcelona verde-limão e do Brasil amarelo, passa pelas brancas (Senegal, Cruzeiro, São Paulo 2018), pelas claras com detalhe, pelas listradas e termina no Ajax preto.
