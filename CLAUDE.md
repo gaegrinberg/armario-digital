@@ -7,8 +7,11 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 - **Etapa 1 (pesquisa): aprovada.** Ver `docs/referencias.md`. A síntese da primeira rodada vale para a v1; a segunda rodada, no fim do arquivo, traz as referências brasileiras.
 - **Etapa 2 (design): aprovada.** A direção escolhida é a **Arara do Brasil**, descrita na última seção de `docs/design.md`. O protótipo é `prototipos/arara.html`. Os protótipos museu e álbum ficam só como histórico, mas a grade do museu pode virar a visão "ver em grade".
 - **Etapa 3 (arquitetura): respondida em 17/10/2026.** Ver `docs/arquitetura.md`, com as decisões no fim. Stack: Astro, Sveltia CMS com token pessoal, rembg/birefnet no GitHub Actions e cores escolhidas numa paleta fixa de 13.
-- **Etapa 4 (primeira versão): em andamento desde 17/10/2026.** Site em Astro com arara, grade com filtros na URL, página da camisa, lista de desejos, CMS (`/admin/`), recorte (`scripts/recortar.py`) e workflow de publicação. Ainda usa as 14 camisas fictícias (etiqueta `exemplo`). Falta publicar: o token do `gh` precisa do escopo `workflow` para enviar `.github/workflows/site.yml`. O GitHub Pages já está ativado no modo Actions.
+- **Etapa 4 (primeira versão): publicada em 17/10/2026, aguardando o Checkpoint 4.** Site no ar em <https://gaegrinberg.github.io/armario-digital/>, com arara, grade com filtros na URL, página da camisa, lista de desejos, CMS (`/admin/`), recorte (`scripts/recortar.py`) e workflow de publicação (`.github/workflows/site.yml`). Ainda usa as 14 camisas fictícias (etiqueta `exemplo`).
+- Pendente da Etapa 4: testar o CMS de verdade com o token do dono e um recorte rodando no GitHub Actions (o recorte só foi testado localmente).
+- Próximo passo provável: importar as 32 camisas reais de `Camisas/` (montar os pares frente/verso, identificar clube e temporada, recortar).
 - Para rodar: `npm run dev` e abrir <http://localhost:4321/armario-digital/>. A página `/admin/` só funciona no build (`npm run build && npm run preview`).
+- O `.gitignore` ignora só `/Camisas/` na raiz. Sem a barra, o Git no Windows (que ignora maiúsculas) escondia também `src/content/camisas`.
 
 ## Decisões já tomadas pelo dono
 
