@@ -6,7 +6,8 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 
 - **Etapa 1 (pesquisa): aprovada.** Ver `docs/referencias.md`. A síntese da primeira rodada vale para a v1; a segunda rodada, no fim do arquivo, traz as referências brasileiras.
 - **Etapa 2 (design): aprovada.** A direção escolhida é a **Arara do Brasil**, descrita na última seção de `docs/design.md`. O protótipo é `prototipos/arara.html`. Os protótipos museu e álbum ficam só como histórico, mas a grade do museu pode virar a visão "ver em grade".
-- **Próximo passo: Etapa 3** (modelo de dados, stack, fluxo de cadastro, pipeline de fotos e silhueta), terminando no Checkpoint 3.
+- **Etapa 3 (arquitetura): no Checkpoint 3, aguardando aprovação.** Ver `docs/arquitetura.md`, que termina com 5 perguntas para o dono. Recomendações: Astro, Sveltia CMS com token pessoal, rembg/birefnet no GitHub Actions e cores escolhidas numa paleta fixa.
+- **Próximo passo depois da aprovação: Etapa 4** (primeira versão).
 
 ## Decisões já tomadas pelo dono
 
@@ -20,7 +21,7 @@ Site pessoal e estático (GitHub Pages) para catalogar uma coleção de camisas 
 
 - Campo `uf` no esquema; a região é derivada da UF.
 - Padrão de silhueta `faixa-peito` (já está no protótipo). Confirmar com o dono que ele respeita a regra da silhueta genérica.
-- A arara depende de fotos com fundo removido ou fundo uniforme: decidir na Etapa 3.4. Teste de 17/10/2026: as fotos reais têm parede, rodapé e interruptor, então o fundo precisa ser removido. O `rembg` com o modelo `birefnet-general-lite` recortou bem até as camisas brancas (cerca de 15 s por foto em CPU, a 1500 px). O `isnet-general-use` deixou as brancas translúcidas e foi descartado. Ponto aberto: o modelo às vezes mantém o cabide real e às vezes o remove.
+- A arara depende de fotos com fundo removido ou fundo uniforme: decidir na Etapa 3.4. Teste de 17/10/2026: as fotos reais têm parede, rodapé e interruptor, então o fundo precisa ser removido. O `rembg` com o modelo `birefnet-general-lite` recortou bem até as camisas brancas (cerca de 15 s por foto em CPU, a 1500 px). O `isnet-general-use` deixou as brancas translúcidas e foi descartado. O cabide é removido num pós-processamento (abertura morfológica no terço de cima), detalhado em `docs/arquitetura.md` 3.4.
 
 ## Fotos
 
