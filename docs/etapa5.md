@@ -85,3 +85,14 @@ No fim da página de cada camisa há uma arara curta, **"Penduradas perto"**, co
 - **Empates** se desfazem por um sorteio fixo, diferente em cada página, para as mesmas camisas não aparecerem em todas.
 - Só entram camisas da coleção, não as da lista de desejos.
 - A arara reaproveita o `Cabide` da página inicial, que ganhou a linha do motivo. A barra acompanha a largura toda sem JavaScript.
+
+## Feito: camisa do dia (17/10/2026)
+
+No topo da arara, entre o título e a busca, uma camisa pendurada num prego ao lado de uma **folhinha de parede** (mês na faixa vermelha, dia grande, dia da semana embaixo). O componente é `src/components/CamisaDoDia.astro`, e a conta fica em `src/lib/camisaDoDia.ts`.
+
+- **Como escolhe:** a coleção é embaralhada em ciclos do tamanho dela. Com 32 camisas, cada uma aparece uma vez a cada 32 dias, sem repetir de um dia para o outro. Entram só as da coleção que têm foto.
+- **Sem servidor:** o build escolhe pela data de Brasília e o navegador refaz a mesma conta com a data de quem abre. Se der outro dia (fuso diferente ou página guardada em cache), ele troca a camisa, copiando a foto da própria arara.
+- **Build toda madrugada:** o workflow `site.yml` ganhou um horário (00:05 em Brasília), para a camisa certa já vir no HTML. O GitHub desliga horários assim depois de 60 dias sem nenhum commit no repositório. Se isso acontecer, o navegador continua acertando a camisa, e basta um cadastro novo (ou reativar o workflow na aba Actions) para o horário voltar.
+- **Texto:** clube, temporada, tipo, fabricante, cidade (ou "Seleção · país"), quantas camisas daquele clube há na coleção e o começo da história, quando houver.
+- **"Sortear outra"** troca por uma camisa qualquer e muda o título para "Sorteada agora". "Voltar à do dia" desfaz.
+- A busca e o filtro dos cabides vazios não mexem nesse destaque.

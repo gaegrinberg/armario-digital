@@ -1,8 +1,9 @@
 ---
-// Tela principal: uma arara por região do Brasil, a arara do coração em destaque,
+// Tela principal: a camisa do dia, uma arara por região do Brasil, a arara do coração em destaque,
 // depois Seleções e Gringas. Camisas desejadas aparecem como cabides vazios.
 import Base from '../layouts/Base.astro';
 import Cabide from '../components/Cabide.astro';
+import CamisaDoDia from '../components/CamisaDoDia.astro';
 import { CONFIG } from '../config';
 import { ARARA_GRINGAS, ARARA_SELECOES, CORES, REGIOES, UFS } from '../opcoes';
 import { porTemporada, todasAsCamisas, type Camisa } from '../lib/camisas';
@@ -71,6 +72,8 @@ let primeiro = 0;
       <figcaption>Camisas por estado</figcaption>
     </figure>
   </header>
+
+  <CamisaDoDia camisas={camisas} />
 
   <div class="controles">
     <label class="oculto" for="busca">Buscar</label>

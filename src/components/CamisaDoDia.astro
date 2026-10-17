@@ -1,0 +1,212 @@
+---
+// Camisa do dia, no topo da arara: uma camisa pendurada num prego, ao lado de uma folhinha de parede.
+// O build escolhe pela data de Brasília (o site é gerado de novo toda madrugada); o navegador
+// refaz a conta com a data de quem abre e troca a camisa se o dia for outro.
+import FotoCamisa from './FotoCamisa.astro';
+import { tipoCurto, type Camisa } from '../lib/camisas';
+import { camisaDoDia, folhinha, hoje } from '../lib/camisaDoDia';
+import { link } from '../lib/link';
+
+interface Props {
+  camisas: Camisa[];
+}
+// Só as da coleção com foto: a imagem é copiada da arara quando o navegador troca a camisa
+const candidatas = Astro.props.camisas
+  .filter((c) => c.status === 'colecao' && c.frente)
+  .sort((a, b) => a.id.localeCompare(b.id));
+
+const porClube = new Map<string, number>();
+for (const c of candidatas) porClube.set(c.clubeId, (porClube.get(c.clubeId) ?? 0) + 1);
+
+const trecho = (texto: string, max = 180) => {
+  const limpo = texto.split(/\n\s*\n/)[0].replace(/[*_#>`[\]]/g, '').replace(/\s+/g, ' ').trim();
+  return limpo.length <= max ? limpo : limpo.slice(0, limpo.lastIndexOf(' ', max)) + '…';
+};
+
+const dados = Object.fromEntries(candidatas.map((c) => {
+  const n = porClube.get(c.clubeId)!;
+  const equipe = c.clube.equipe === 'selecao' ? 'desta seleção' : 'deste clube';
+  return [c.id, {
+    nome: c.clube.nome,
+    meta: [c.temporada, tipoCurto(c), c.fabricante].filter(Boolean).join(' · '),
+    lugar: c.clube.equipe === 'selecao' ? `Seleção · ${c.clube.pais}` : `${c.clube.cidade}, ${c.clube.uf ?? c.clube.pais}`,
+    conta: n === 1 ? `A única camisa ${equipe} na coleção.` : `Uma das ${n} camisas ${equipe} na coleção.`,
+    historia: trecho(c.historia),
+    href: link(`camisa/${c.id}/`),
+  }];
+}));
+
+const data = hoje('America/Sao_Paulo');
+const id = camisaDoDia(Object.keys(dados), data);
+const c = candidatas.find((x) => x.id === id);
+const d = id ? dados[id] : undefined;
+const f = folhinha(data);
+// "<" escapado para o JSON não fechar a tag <script>
+const json = JSON.stringify(dados).replace(/</g, '\\u003c');
+---
+{c && d && (
+  <section class="dia" aria-labelledby="dia-titulo" data-id={c.id}>
+    <a class="dia-camisa" href={d.href} tabindex="-1" aria-hidden="true">
+      <span class="prego" />
+      <span class="dia-pendurado">
+        <svg class="gancho" viewBox="0 0 100 44" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 26 V18 C50 14 58 13 58 7 C58 2 50 0 46 4" />
+          <path d="M50 26 L8 42 H92 Z" />
+        </svg>
+        <span class="dia-foto"><FotoCamisa camisa={c} tamanho="miniatura" rotulo={false} prioridade /></span>
+      </span>
+    </a>
+
+    <div class="dia-texto">
+      <div class="dia-cabeca">
+        <time class="folhinha" datetime={f.iso} aria-label={f.extenso}>
+          <span class="f-mes" data-f="mes">{f.mes}</span>
+          <span class="f-dia" data-f="dia">{f.dia}</span>
+          <span class="f-semana" data-f="semana">{f.semana}</span>
+        </time>
+        <h2 class="dia-titulo" id="dia-titulo">Camisa do dia</h2>
+      </div>
+      <p class="dia-nome"><a data-campo="nome" href={d.href}>{d.nome}</a></p>
+      <p class="dia-meta" data-campo="meta">{d.meta}</p>
+      <p class="dia-meta" data-campo="lugar">{d.lugar}</p>
+      <p class="dia-historia" data-campo="historia" hidden={!d.historia}>{d.historia}</p>
+      <p class="dia-conta" data-campo="conta">{d.conta}</p>
+    </div>
+    <div class="dia-acoes">
+      <a class="pilula forte" data-campo="link" href={d.href}>Ver a camisa</a>
+      {candidatas.length > 1 && <button class="pilula" type="button" id="sortear">Sortear outra</button>}
+      <button class="pilula" type="button" id="voltar-dia" hidden>Voltar à do dia</button>
+    </div>
+    <script is:inline type="application/json" id="dados-dia" set:html={json} />
+  </section>
+)}
+
+<style>
+  .dia {
+    display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 4px 14px; align-items: start;
+    grid-template-areas: "camisa texto" "acoes acoes";
+    margin: 4px -16px 24px; padding: 14px 16px 18px;
+    background:
+      radial-gradient(ellipse 60% 70% at 25% 10%, color-mix(in srgb, var(--superficie) 60%, #fff4d6), transparent),
+      var(--superficie);
+    border-block: 1px solid var(--borda);
+  }
+  /* Com espaço, os botões ficam embaixo do texto e a camisa ocupa a altura toda */
+  @media (min-width: 480px) { .dia { grid-template-areas: "camisa texto" "camisa acoes"; grid-template-rows: auto 1fr; } }
+  @media (min-width: 640px) { .dia { grid-template-columns: 240px minmax(0, 1fr); gap: 4px 28px; } }
+  @media (min-width: 760px) { .dia { margin-inline: 0; padding: 18px 28px 22px; border: 1px solid var(--borda); border-radius: 10px; } }
+
+  /* A camisa pendurada num prego, com um balanço curto ao passar o mouse */
+  .dia-camisa { grid-area: camisa; position: relative; display: block; padding-top: 6px; }
+  .prego {
+    position: absolute; top: 0; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--metal) 40%, #fff), var(--metal) 60%, color-mix(in srgb, var(--metal) 50%, #000));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  }
+  .dia-pendurado {
+    display: block; transform-origin: 50% 4px;
+    transition: transform 0.9s cubic-bezier(0.25, 1.8, 0.45, 1);
+  }
+  .dia-camisa:hover .dia-pendurado { transform: rotate(-2.5deg); }
+  .gancho { display: block; width: 40%; margin: 0 auto; color: var(--metal); }
+  .dia-foto { display: block; margin-top: -14%; padding: 0 4%; }
+  .dia-foto :global(.foto-recorte) { aspect-ratio: 1 / 1.05; object-fit: contain; object-position: top; }
+  .dia-foto :global(.foto-placa) { margin-top: 14%; }
+
+  .dia-texto { grid-area: texto; min-width: 0; padding-top: 4px; }
+  .dia-cabeca { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+
+  /* Folhinha de parede: mês na faixa, dia grande, dia da semana embaixo, borda picotada */
+  .folhinha {
+    flex: none; display: grid; width: 58px; text-align: center; transform: rotate(-2deg);
+    background: var(--etiqueta); border: 1px solid var(--borda); border-radius: 3px 3px 2px 2px;
+    box-shadow: 0 2px 0 -1px var(--etiqueta), 0 2px 0 0 var(--borda), 0 1px 3px rgb(0 0 0 / 0.1);
+    overflow: hidden;
+  }
+  .f-mes {
+    padding: 3px 0 2px; background: var(--acento); color: var(--sobre-acento);
+    font: 700 0.75rem/1 var(--fonte-titulo); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .f-dia { font: 900 1.875rem/1.05 var(--fonte-placa); color: var(--texto); padding-top: 2px; }
+  .f-semana {
+    padding: 1px 0 4px; border-top: 1px dashed var(--borda); color: var(--texto-2);
+    font: 600 0.6875rem/1.2 var(--fonte-titulo); letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .dia-titulo {
+    margin: 0; color: var(--acento);
+    font: 700 0.9375rem/1.1 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .dia-nome { margin: 0; font: 900 clamp(1.5rem, 6vw, 2.25rem)/1 var(--fonte-placa); letter-spacing: 0.01em; }
+  .dia-nome a { color: var(--texto); text-decoration: none; }
+  .dia-nome a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
+  .dia-meta { margin: 4px 0 0; color: var(--texto-2); font-size: 0.9375rem; }
+  .dia-meta + .dia-meta { margin-top: 0; }
+  .dia-historia { margin: 10px 0 0; max-width: 52ch; font-size: 0.9375rem; }
+  .dia-conta { margin: 10px 0 0; color: var(--texto-2); font-size: 0.875rem; }
+
+  .dia-acoes { grid-area: acoes; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .pilula.forte { background: var(--texto); border-color: var(--texto); color: var(--fundo); }
+  /* No celular, os botões descem para baixo da camisa e dividem a largura */
+  @media (max-width: 479px) { .dia-acoes > * { flex: 1; } }
+
+  @media (prefers-reduced-motion: reduce) { .dia-pendurado { transition: none; transform: none !important; } }
+</style>
+
+<script>
+  import { camisaDoDia, folhinha, hoje } from '../lib/camisaDoDia';
+
+  const secao = document.querySelector<HTMLElement>('.dia');
+  if (secao) {
+    type Dados = Record<string, { nome: string; meta: string; lugar: string; conta: string; historia: string; href: string }>;
+    const dados: Dados = JSON.parse(document.getElementById('dados-dia')!.textContent!);
+    const ids = Object.keys(dados);
+    const titulo = secao.querySelector<HTMLElement>('#dia-titulo')!;
+    const sortear = secao.querySelector<HTMLButtonElement>('#sortear');
+    const voltar = secao.querySelector<HTMLButtonElement>('#voltar-dia')!;
+
+    function mostrar(id: string) {
+      if (secao!.dataset.id === id) return;
+      const d = dados[id];
+      secao!.dataset.id = id;
+      for (const el of secao!.querySelectorAll<HTMLElement>('[data-campo]')) {
+        const campo = el.dataset.campo as keyof typeof d | 'link';
+        if (campo === 'link' || campo === 'nome') (el as HTMLAnchorElement).href = d.href;
+        if (campo !== 'link') el.textContent = d[campo];
+        if (campo === 'historia') el.hidden = !d.historia;
+      }
+      secao!.querySelector<HTMLAnchorElement>('.dia-camisa')!.href = d.href;
+      // A foto vem da própria arara, que já tem a camisa com as mesmas medidas
+      const original = document.querySelector(`#regioes a.cabide[href="${d.href}"] .camisa > img`);
+      const foto = secao!.querySelector('.dia-foto')!;
+      if (original) {
+        const copia = original.cloneNode(true) as HTMLImageElement;
+        copia.loading = 'eager';
+        foto.replaceChildren(copia);
+      }
+    }
+
+    // A data de quem abre a página; se for outro dia que não o do build, troca a camisa
+    const data = hoje();
+    const f = folhinha(data);
+    const tempo = secao.querySelector<HTMLTimeElement>('.folhinha')!;
+    tempo.dateTime = f.iso;
+    tempo.setAttribute('aria-label', f.extenso);
+    for (const el of tempo.querySelectorAll<HTMLElement>('[data-f]')) el.textContent = f[el.dataset.f as 'mes' | 'dia' | 'semana'];
+    const doDia = camisaDoDia(ids, data)!;
+    mostrar(doDia);
+
+    sortear?.addEventListener('click', () => {
+      const outras = ids.filter((id) => id !== secao.dataset.id);
+      mostrar(outras[Math.floor(Math.random() * outras.length)]);
+      titulo.textContent = 'Sorteada agora';
+      voltar.hidden = false;
+    });
+    voltar.addEventListener('click', () => {
+      mostrar(doDia);
+      titulo.textContent = 'Camisa do dia';
+      voltar.hidden = true;
+      sortear?.focus();
+    });
+  }
+</script>

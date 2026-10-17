@@ -1,10 +1,13 @@
 # A cada push na main: recorta o fundo das fotos novas, valida os dados, gera o site
-# e publica no GitHub Pages.
+# e publica no GitHub Pages. Toda madrugada gera de novo, para a camisa do dia já vir no HTML.
 name: Site
 
 on:
   push:
     branches: [main]
+  # 03:05 UTC = 00:05 em Brasília
+  schedule:
+    - cron: '5 3 * * *'
   workflow_dispatch:
 
 permissions:
