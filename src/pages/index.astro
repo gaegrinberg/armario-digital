@@ -33,7 +33,8 @@ const nivel = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n < 4 ? 2 : 3);
 
 const coracao = camisas.filter((c) => c.clubeId === CONFIG.timeDoCoracao);
 const nomeCoracao = coracao[0]?.clube.nome;
-const coresCoracao = (coracao.find((c) => c.status === 'colecao') ?? coracao[0])?.cores ?? [];
+// A faixa usa as cores da titular mais recente (ou da primeira camisa, se não houver titular)
+const coresCoracao = (coracao.find((c) => c.status === 'colecao' && c.tipo === 'titular') ?? coracao[0])?.cores ?? [];
 
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
 const legendaConta = (lista: Camisa[]) => {
@@ -71,7 +72,8 @@ let primeiro = 0;
   <div class="controles">
     <label class="oculto" for="busca">Buscar</label>
     <input class="campo-busca" id="busca" type="search" placeholder="Buscar clube, estado, história…" autocomplete="off" />
-    <label class="check"><input type="checkbox" id="vazios" checked /> Mostrar cabides vazios (lista de desejos)</label>
+    {/* Sem nenhuma camisa desejada, a chave não serve para nada */}
+    <label class="check" hidden={!camisas.some((c) => c.status === 'desejo')}><input type="checkbox" id="vazios" checked /> Mostrar cabides vazios (lista de desejos)</label>
   </div>
 
   <div id="regioes">
