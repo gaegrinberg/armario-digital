@@ -4,4 +4,6 @@ pais: Argentina
 uf: ''
 liga: AFA
 cidade: Córdoba
-coordenadas: null
+coordenadas:
+  lat: -31.38370206031144
+  lon: -64.1805413323591
