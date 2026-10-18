@@ -57,22 +57,70 @@ img { max-width: 100%; height: auto; }
   clip: rect(0 0 0 0); white-space: nowrap;
 }
 
-.pagina { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
+.pagina { max-width: 1240px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 64px max(16px, env(safe-area-inset-left)); }
 
 /* ---------- Topo comum ---------- */
-.barra { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 16px 0 0; }
+.barra { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 16px 0 0; }
 .barra > :first-child { margin-right: auto; }
-/* No celular, a marca e a chave de tema dividem a primeira linha e as seções descem,
-   dividindo a linha entre os cinco botões (só quebram abaixo de uns 340 px) */
-@media (max-width: 559px) {
-  .barra .nav { order: 1; flex-basis: 100%; gap: 6px; }
-  .barra .nav .pilula { flex: 1 1 auto; padding: 0 6px; }
-}
 .marca {
   font-family: var(--fonte-placa); font-weight: 900; font-size: 1.5rem; line-height: 1;
-  color: var(--texto); text-decoration: none;
+  color: var(--texto); text-decoration: none; white-space: nowrap;
 }
-.nav { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- Navegação: barra de app ----------
+   No celular e no tablet, barra fixa embaixo com ícone e nome; a seção atual ganha uma
+   bolha no ícone. No computador, controle segmentado no topo. O marcador da seção atual
+   (.aba-marcador) desliza de uma página para a outra pela transição de páginas do navegador. */
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  padding: 6px max(4px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--fundo) 84%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  border-top: 1px solid var(--borda);
+}
+.aba {
+  position: relative; isolation: isolate;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; padding-top: 4px;
+  color: var(--texto-2); text-decoration: none; -webkit-tap-highlight-color: transparent;
+  font: 600 0.75rem/1.1 var(--fonte-titulo); letter-spacing: 0.02em;
+}
+.aba svg { width: 24px; height: 30px; padding: 3px 0; transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.aba-marcador {
+  position: absolute; z-index: -1; top: 4px; left: 50%; width: 56px; height: 30px; margin-left: -28px;
+  border-radius: 999px; background: color-mix(in srgb, var(--acento) 16%, transparent);
+  view-transition-name: aba-marcador;
+}
+.aba[aria-current="page"] { color: var(--texto); }
+.aba[aria-current="page"] svg { color: var(--acento); transform: scale(1.08); }
+.aba[aria-current="page"] .preench { fill: currentColor; fill-opacity: .18; }
+.pagina { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+
+@media (min-width: 900px) {
+  .nav {
+    position: static; z-index: auto; display: flex; padding: 4px; border-radius: 999px;
+    background: var(--superficie); border: 1px solid var(--borda); box-shadow: 0 1px 2px rgb(0 0 0 / .06);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .aba {
+    flex-direction: row; gap: 6px; min-height: 40px; padding: 0 14px;
+    font: 500 0.875rem/1 var(--fonte-texto); letter-spacing: 0; transition: color .2s;
+  }
+  .aba svg { width: 18px; height: 18px; padding: 0; }
+  .aba-marcador { inset: 0; width: auto; height: auto; margin: 0; background: var(--texto); }
+  .aba[aria-current="page"], .aba[aria-current="page"] svg { color: var(--fundo); transform: none; }
+  .aba[aria-current="page"] .preench { fill-opacity: 0; }
+  .aba:not([aria-current="page"]):hover { color: var(--texto); }
+  .pagina { padding-bottom: 64px; }
+}
+
+/* Troca de página com o marcador deslizando (Chrome, Edge e Safari recentes; os outros só trocam) */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(aba-marcador) { animation-duration: .35s; animation-timing-function: cubic-bezier(.3, 1.2, .5, 1); }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
+}
+
 .pilula {
   display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px;
   border: 1px solid var(--borda); border-radius: 999px; background: transparent;

@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navegação · Armário Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Archivo:wght@400;500;600&family=Londrina+Solid:wght@900&display=swap" rel="stylesheet">
+<style>
+  /* Tokens copiados de src/styles/global.css */
+  :root {
+    --fundo: #EDEBE6; --superficie: #FFFFFF; --placa: #F4F1EA;
+    --placa-pintada: #F7F1E1; --tinta: #1F1A14;
+    --etiqueta: #FBF8F1;
+    --texto: #18191B; --texto-2: #55585E; --borda: #D3D0C8;
+    --metal: #8C9097;
+    --acento: #A3271B; --sobre-acento: #FFFFFF;
+    --sombra-camisa: drop-shadow(0 6px 8px rgb(40 30 10 / 0.18));
+    --fonte-placa: 'Londrina Solid', 'Arial Black', sans-serif;
+    --fonte-titulo: 'Archivo Narrow', 'Arial Narrow', sans-serif;
+    --fonte-texto: 'Archivo', system-ui, sans-serif;
+    --raio: 6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #121315; --superficie: #1C1E21; --placa: #202226;
+      --placa-pintada: #26231E; --tinta: #F2EBDD;
+      --etiqueta: #24272B;
+      --texto: #ECECEA; --texto-2: #A6A8AC; --borda: #34373C;
+      --metal: #5E636B;
+      --acento: #F08A7E; --sobre-acento: #1A0D0B;
+      --sombra-camisa: drop-shadow(0 6px 8px rgb(0 0 0 / 0.5));
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fundo: #121315; --superficie: #1C1E21; --placa: #202226;
+    --placa-pintada: #26231E; --tinta: #F2EBDD;
+    --etiqueta: #24272B;
+    --texto: #ECECEA; --texto-2: #A6A8AC; --borda: #34373C;
+    --metal: #5E636B;
+    --acento: #F08A7E; --sobre-acento: #1A0D0B;
+    --sombra-camisa: drop-shadow(0 6px 8px rgb(0 0 0 / 0.5));
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font-family: var(--fonte-texto); line-height: 1.5; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+  a { color: var(--acento); }
+
+  /* ---------- Página de apresentação ---------- */
+  .doc { max-width: 1240px; margin: 0 auto; padding: 24px 16px 80px; }
+  .doc-topo { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .doc-topo > div { flex: 1 1 320px; }
+  .doc h1 { margin: 0; font-family: var(--fonte-placa); font-weight: 900; font-size: clamp(2rem, 7vw, 2.75rem); line-height: 1; }
+  .doc .lead { margin: 8px 0 0; color: var(--texto-2); max-width: 68ch; }
+  .tema-doc {
+    min-height: 44px; padding: 0 14px; border: 1px solid var(--borda); border-radius: 999px;
+    background: transparent; color: var(--texto-2); font-size: 0.875rem; cursor: pointer;
+  }
+  .indice { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0 0; padding: 0; list-style: none; }
+  .indice a {
+    display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px;
+    background: var(--superficie); border: 1px solid var(--borda); color: var(--texto); text-decoration: none; font-size: 0.9375rem;
+  }
+
+  .opcao { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--borda); }
+  .opcao-cab { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .opcao-num {
+    font-family: var(--fonte-placa); font-weight: 900; font-size: 1.5rem; line-height: 1;
+    padding: 6px 10px 4px; background: var(--placa-pintada); color: var(--tinta);
+    border: 2px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta); transform: rotate(-2deg);
+  }
+  .opcao h2 { margin: 0; font-family: var(--fonte-titulo); font-weight: 700; font-size: 1.75rem; line-height: 1.1; }
+  .opcao .resumo { margin: 8px 0 0; color: var(--texto-2); max-width: 72ch; }
+
+  .telas { display: flex; gap: 24px; align-items: flex-start; margin-top: 20px; }
+  .tela-rotulo { display: block; margin-bottom: 6px; font: 600 0.8125rem/1 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-2); }
+  .tela-celular { flex: none; }
+  .tela-computador { flex: 1 1 auto; min-width: 0; }
+  @media (max-width: 1139px) {
+    .telas { flex-direction: column; align-items: stretch; }
+    .tela-celular { align-self: center; }
+    .tela-computador { width: 100%; }
+  }
+  @media (max-width: 759px) { .tela-computador { display: none; } }
+
+  .notas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 24px; margin-top: 20px; }
+  .notas h3 { margin: 0 0 4px; font: 700 0.8125rem/1.2 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-2); }
+  .notas ul { margin: 0; padding-left: 18px; }
+  .notas li { margin: 2px 0; }
+
+  .leitura { margin-top: 56px; padding: 20px; background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); }
+  .leitura h2 { margin: 0 0 8px; font-family: var(--fonte-titulo); font-size: 1.5rem; }
+  .leitura p { margin: 8px 0 0; max-width: 75ch; }
+  .fontes { margin-top: 32px; color: var(--texto-2); font-size: 0.875rem; }
+  .fontes ul { padding-left: 18px; }
+
+  /* ---------- Molduras ---------- */
+  .celular {
+    position: relative; width: 360px; max-width: calc(100vw - 32px); height: 680px;
+    border: 10px solid #0d0d0f; border-radius: 40px; overflow: hidden; background: var(--fundo);
+    box-shadow: 0 20px 40px rgb(0 0 0 / 0.18);
+  }
+  .celular .rolagem { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+  .celular .rolagem::-webkit-scrollbar { display: none; }
+  .computador {
+    position: relative; height: 520px; border: 1px solid var(--borda); border-radius: 12px; overflow: hidden;
+    background: var(--fundo); box-shadow: 0 20px 40px rgb(0 0 0 / 0.12);
+  }
+  .computador::before {
+    content: ''; display: block; height: 28px; background: var(--placa); border-bottom: 1px solid var(--borda);
+    background-image: radial-gradient(circle at 16px 14px, #E0605A 5px, transparent 6px),
+      radial-gradient(circle at 34px 14px, #E8B33F 5px, transparent 6px),
+      radial-gradient(circle at 52px 14px, #5DB75D 5px, transparent 6px);
+  }
+  .computador .rolagem { position: absolute; inset: 28px 0 0; overflow-y: auto; overflow-x: hidden; }
+  .miolo { padding: 0 16px 24px; }
+  .computador .miolo { padding: 0 32px 32px; max-width: 980px; margin: 0 auto; }
+
+  /* ---------- Conteúdo de mentira, igual para todas ---------- */
+  .m-titulo { margin: 18px 0 2px; font-family: var(--fonte-placa); font-weight: 900; font-size: 2rem; line-height: 1; }
+  .m-sub { margin: 0; color: var(--texto-2); font-size: 0.875rem; }
+  .m-placa {
+    display: inline-block; margin-top: 18px; padding: 8px 14px 6px; transform: rotate(-1.5deg);
+    background: var(--placa-pintada); color: var(--tinta); border: 2px solid var(--tinta); box-shadow: 3px 3px 0 var(--tinta);
+    font-family: var(--fonte-placa); font-weight: 900; font-size: 1.5rem; line-height: 1;
+  }
+  .m-arara { position: relative; margin-top: 14px; padding-top: 6px; }
+  .m-barra { height: 6px; border-radius: 3px; background: var(--metal); }
+  .m-cabides { display: flex; gap: 10px; overflow: hidden; }
+  .m-cabide { flex: none; width: 108px; text-align: center; }
+  .computador .m-cabide { width: 150px; }
+  .m-gancho { width: 2px; height: 14px; margin: 0 auto; background: var(--metal); }
+  .m-cabide img { display: block; width: 100%; height: auto; filter: var(--sombra-camisa); }
+  .m-etiqueta {
+    display: inline-block; margin-top: 6px; padding: 4px 8px; transform: rotate(-2deg);
+    background: var(--etiqueta); border: 1px solid var(--borda); border-radius: 3px; font: 700 0.8125rem/1.2 var(--fonte-titulo);
+  }
+  .m-cabide:nth-child(even) .m-etiqueta { transform: rotate(2deg); }
+  .m-grade { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
+  .computador .m-grade { grid-template-columns: repeat(4, 1fr); }
+  .m-grade div { aspect-ratio: 4 / 5; background: var(--placa); border-radius: var(--raio); display: grid; place-items: center; padding: 10px; }
+  .m-grade img { max-width: 100%; max-height: 100%; filter: var(--sombra-camisa); }
+  .m-mapa { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-top: 16px; max-width: 420px; }
+  .m-mapa i { aspect-ratio: 1; border-radius: 3px; background: var(--placa); }
+  .m-mapa i.c1 { background: color-mix(in srgb, var(--acento) 35%, var(--placa)); }
+  .m-mapa i.c2 { background: color-mix(in srgb, var(--acento) 70%, var(--placa)); }
+  .m-mapa i.v { background: transparent; }
+  .m-numeros { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .m-numeros div { flex: 1 1 90px; padding: 12px; background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); }
+  .m-numeros strong { display: block; font-family: var(--fonte-placa); font-size: 2.25rem; line-height: 1; }
+  .m-numeros span { color: var(--texto-2); font-size: 0.875rem; }
+  .m-vazio { width: 100%; aspect-ratio: 5 / 6; border: 2px dashed var(--borda); border-radius: 18px 18px 8px 8px; }
+  .m-procura { display: block; color: var(--acento); font: 700 0.75rem/1.2 var(--fonte-titulo); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* =========================================================
+     Opção 1. Barra de app
+     ========================================================= */
+  .o1-topo { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 0; }
+  .o1-marca { white-space: nowrap; font-family: var(--fonte-placa); font-weight: 900; font-size: 1.25rem; line-height: 1; color: var(--texto); text-decoration: none; }
+  .o1-tema { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--borda); background: transparent; color: var(--texto-2); cursor: pointer; }
+
+  /* Celular: barra fixa embaixo */
+  .o1-baixo {
+    position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 6px 4px 18px; /* 18px = área do gesto de voltar ao início do iPhone */
+    background: color-mix(in srgb, var(--fundo) 82%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+    border-top: 1px solid var(--borda);
+  }
+  .o1-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; padding: 4px 0 0;
+    border: 0; background: none; color: var(--texto-2); cursor: pointer; -webkit-tap-highlight-color: transparent;
+    font: 600 0.6875rem/1.1 var(--fonte-titulo); letter-spacing: 0.02em;
+  }
+  .o1-icone { display: grid; place-items: center; width: 56px; height: 30px; border-radius: 999px; transition: background-color .2s, color .2s; }
+  .o1-icone svg { width: 24px; height: 24px; transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+  .o1-item[aria-current="page"] { color: var(--texto); }
+  .o1-item[aria-current="page"] .o1-icone { background: color-mix(in srgb, var(--acento) 16%, transparent); color: var(--acento); }
+  .o1-item[aria-current="page"] svg { transform: scale(1.08); }
+  .o1-item[aria-current="page"] .preench { fill: currentColor; fill-opacity: .18; }
+  .celular .o1 .miolo { padding-bottom: 96px; }
+
+  /* Computador: controle segmentado com marcador que desliza */
+  .o1-cima { display: flex; align-items: center; gap: 16px; padding: 16px 32px 0; max-width: 980px; margin: 0 auto; }
+  .o1-cima .o1-marca { font-size: 1.5rem; margin-right: auto; }
+  .o1-seg {
+    position: relative; display: flex; padding: 4px; border-radius: 999px;
+    background: var(--superficie); border: 1px solid var(--borda); box-shadow: 0 1px 2px rgb(0 0 0 / .06);
+  }
+  .o1-marcador {
+    position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 999px; background: var(--texto);
+    transition: transform .35s cubic-bezier(.3,1.25,.5,1), width .35s cubic-bezier(.3,1.25,.5,1);
+  }
+  .o1-seg .o1-item {
+    position: relative; z-index: 1; flex-direction: row; gap: 6px; min-height: 40px; padding: 0 14px;
+    font-size: 0.875rem; font-family: var(--fonte-texto); font-weight: 500; letter-spacing: 0; transition: color .25s;
+  }
+  .o1-seg .o1-item svg { width: 18px; height: 18px; }
+  .o1-seg .o1-item[aria-current="page"] { color: var(--fundo); }
+  .o1-seg .o1-item[aria-current="page"] .preench { fill-opacity: 0; }
+  .o1-seg .o1-item:not([aria-current="page"]):hover { color: var(--texto); }
+
+  /* =========================================================
+     Opção 2. Divisórias de fichário
+     ========================================================= */
+  .o2-topo { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
+  .computador .o2-topo { padding: 16px 32px 12px; max-width: 980px; margin: 0 auto; }
+  .o2-marca { white-space: nowrap; font-family: var(--fonte-placa); font-weight: 900; font-size: 1.25rem; line-height: 1; color: var(--texto); text-decoration: none; }
+  .computador .o2-marca { font-size: 1.5rem; }
+  .o2-tema { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--borda); background: transparent; color: var(--texto-2); font-size: 0.8125rem; cursor: pointer; }
+
+  .o2-abas {
+    position: sticky; top: 0; z-index: 5; display: flex; align-items: flex-end; padding: 6px 10px 0 18px;
+    background: var(--fundo); overflow-x: auto; scrollbar-width: none;
+  }
+  .o2-abas::-webkit-scrollbar { display: none; }
+  .computador .o2-abas { padding: 6px 32px 0 46px; max-width: 980px; margin: 0 auto; }
+  .o2-aba {
+    position: relative; flex: none; margin-left: -8px; padding: 7px 14px 9px; border: 1px solid var(--borda); border-bottom: 0;
+    border-radius: 10px 10px 0 0; background: var(--cor-aba); color: var(--texto-2); cursor: pointer; text-align: left;
+    box-shadow: inset 0 -6px 8px -6px rgb(0 0 0 / .12); transform: translateY(3px);
+    transition: transform .2s, padding .2s, color .2s; -webkit-tap-highlight-color: transparent;
+  }
+  .o2-aba:hover { transform: translateY(0); }
+  .o2-aba small { display: block; font: 600 0.625rem/1 var(--fonte-titulo); letter-spacing: 0.12em; opacity: .75; }
+  .o2-aba span { display: block; font: 700 0.875rem/1.2 var(--fonte-titulo); letter-spacing: 0.06em; text-transform: uppercase; }
+  .celular .o2-aba { padding: 6px 9px 8px; margin-left: -6px; }
+  .celular .o2-aba span { font-size: 0.75rem; letter-spacing: 0.03em; }
+  .celular .o2-abas { padding-left: 14px; }
+  .computador .o2-aba { padding: 8px 20px 10px; margin-left: -10px; }
+  .computador .o2-aba span { font-size: 1rem; }
+  .o2-aba[aria-current="page"] {
+    z-index: 3 !important; background: var(--superficie); color: var(--texto); transform: translateY(1px);
+    padding-top: 10px; box-shadow: none;
+  }
+  .o2-aba[aria-current="page"]::after { /* tapa a borda da folha embaixo da aba ativa */
+    content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; background: var(--superficie);
+  }
+  .o2-aba[aria-current="page"] small { color: var(--acento); opacity: 1; }
+  /* tons de papel das divisórias, do mais claro ao mais escuro */
+  .o2-aba:nth-child(1) { --cor-aba: color-mix(in srgb, var(--placa) 100%, var(--borda) 0%); z-index: 2; }
+  .o2-aba:nth-child(2) { --cor-aba: color-mix(in srgb, var(--placa) 85%, var(--borda)); z-index: 2; }
+  .o2-aba:nth-child(3) { --cor-aba: color-mix(in srgb, var(--placa) 70%, var(--borda)); z-index: 2; }
+  .o2-aba:nth-child(4) { --cor-aba: color-mix(in srgb, var(--placa) 55%, var(--borda)); z-index: 2; }
+  .o2-aba:nth-child(5) { --cor-aba: color-mix(in srgb, var(--placa) 40%, var(--borda)); z-index: 2; }
+  .o2-folha {
+    position: relative; z-index: 2; margin: 0 8px; background: var(--superficie); border: 1px solid var(--borda);
+    border-radius: 4px 12px 12px 12px; box-shadow: 0 2px 0 var(--borda), 0 4px 0 color-mix(in srgb, var(--borda) 60%, transparent);
+    min-height: 560px;
+  }
+  .computador .o2-folha { margin: 0 auto; max-width: 940px; min-height: 440px; }
+  .o2-folha .miolo { padding-top: 4px; }
+  .computador .o2-folha .miolo { padding: 8px 28px 28px; }
+  .o2-folha .m-grade div, .o2-folha .m-mapa i:not(.c1):not(.c2):not(.v) { background: var(--fundo); }
+  .o2-folha .m-numeros div { background: var(--fundo); }
+
+  /* =========================================================
+     Opção 3. Plaquinhas penduradas
+     ========================================================= */
+  .o3-topo { position: sticky; top: 0; z-index: 5; padding: 12px 16px 6px; background: var(--fundo); }
+  .computador .o3-topo { padding: 16px 32px 8px; }
+  .o3-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .o3-marca { white-space: nowrap; font-family: var(--fonte-placa); font-weight: 900; font-size: 1.25rem; line-height: 1; color: var(--texto); text-decoration: none; }
+  .o3-tema { min-height: 32px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--borda); background: transparent; color: var(--texto-2); font-size: 0.8125rem; cursor: pointer; }
+  .o3-varal { position: relative; margin-top: 10px; }
+  .o3-varal::before { /* a barra de metal, igual à da arara */
+    content: ''; position: absolute; left: -4px; right: -4px; top: 0; height: 5px; border-radius: 3px; background: var(--metal);
+  }
+  .o3-placas { display: flex; justify-content: space-between; gap: 4px; padding: 0 2px; }
+  .o3-placa {
+    --fio: 12px; --torto: -2deg;
+    position: relative; margin-top: calc(5px + var(--fio)); padding: 7px 8px 5px;
+    background: var(--placa-pintada); color: var(--tinta); border: 2px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta);
+    font-family: var(--fonte-placa); font-weight: 900; font-size: 1rem; line-height: 1; cursor: pointer;
+    transform: rotate(var(--torto)); transform-origin: 50% calc(-1 * var(--fio));
+    transition: margin-top .25s cubic-bezier(.3,1.6,.5,1), background-color .2s, color .2s; -webkit-tap-highlight-color: transparent;
+  }
+  .o3-placa:nth-child(even) { --torto: 2deg; }
+  .o3-placa:nth-child(3) { --torto: -1deg; }
+  .o3-placa::before, .o3-placa::after { /* os dois fios */
+    content: ''; position: absolute; top: calc(-2px - var(--fio)); width: 2px; height: var(--fio); background: var(--metal);
+    transition: height .25s cubic-bezier(.3,1.6,.5,1), top .25s cubic-bezier(.3,1.6,.5,1);
+  }
+  .o3-placa::before { left: 18%; }
+  .o3-placa::after { right: 18%; }
+  .o3-placa[aria-current="page"] { --fio: 20px; background: var(--acento); color: var(--sobre-acento); border-color: var(--tinta); }
+  .o3-placa:hover { animation: balanca 1.1s ease-out; }
+  .o3-placa.balancando { animation: balanca 1.4s ease-out; }
+  @keyframes balanca {
+    0% { transform: rotate(var(--torto)); } 20% { transform: rotate(7deg); } 40% { transform: rotate(-5deg); }
+    60% { transform: rotate(3deg); } 80% { transform: rotate(-1.5deg); } 100% { transform: rotate(var(--torto)); }
+  }
+  .computador .o3-topo .o3-linha { max-width: 980px; margin: 0 auto; }
+  .computador .o3-marca { font-size: 1.75rem; }
+  .computador .o3-varal { max-width: 980px; margin: 14px auto 0; }
+  .computador .o3-placas { justify-content: flex-start; gap: 18px; padding-left: 8px; }
+  .computador .o3-placa { font-size: 1.25rem; padding: 8px 14px 6px; }
+  .o3 .miolo { padding-top: 6px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+  <div class="doc-topo">
+    <div>
+      <h1>Navegação: três propostas</h1>
+      <p class="lead">Hoje as seções são cinco pílulas iguais no topo. Abaixo, três jeitos de trocar isso, cada um no celular e no computador. As telas funcionam: toque nas seções para ver a troca. O conteúdo é de mentira, só para dar contexto.</p>
+    </div>
+    <button class="tema-doc" id="tema-doc" type="button">◐ Auto</button>
+  </div>
+  <ul class="indice">
+    <li><a href="#opcao-1">1. Barra de app</a></li>
+    <li><a href="#opcao-2">2. Divisórias de fichário</a></li>
+    <li><a href="#opcao-3">3. Plaquinhas penduradas</a></li>
+  </ul>
+
+  <!-- ===================== 1 ===================== -->
+  <section class="opcao" id="opcao-1">
+    <div class="opcao-cab"><span class="opcao-num">1</span><h2>Barra de app</h2></div>
+    <p class="resumo">No celular, as seções descem para uma <strong>barra fixa embaixo</strong>, com ícones próprios (cabide, grade, alfinete, placar, etiqueta) ao alcance do polegar, como no Spotify, no Letterboxd ou em qualquer app do iPhone e do Android. No computador viram um <strong>controle segmentado</strong> no topo, com um marcador que desliza até a seção escolhida.</p>
+    <div class="telas">
+      <div class="tela-celular"><span class="tela-rotulo">Celular</span><div class="celular" data-opcao="1" data-modo="celular"></div></div>
+      <div class="tela-computador"><span class="tela-rotulo">Computador</span><div class="computador" data-opcao="1" data-modo="computador"></div></div>
+    </div>
+    <div class="notas">
+      <div><h3>Referências</h3><ul><li>Barra de abas do iPhone e barra de navegação do Material 3 (Android)</li><li>Spotify e Letterboxd</li></ul></div>
+      <div><h3>Bom</h3><ul><li>É a que mais tem cara de app, e o site já pode ser instalado na tela inicial</li><li>Polegar alcança tudo, e os ícones são do vocabulário da arara</li></ul></div>
+      <div><h3>Atenção</h3><ul><li>É o padrão mais comum dos três. A identidade fica nos ícones</li><li>Ocupa uns 70 px fixos embaixo da tela</li></ul></div>
+      <div><h3>Esforço</h3><ul><li>Pequeno. Cinco ícones em SVG e CSS</li></ul></div>
+    </div>
+  </section>
+
+  <!-- ===================== 2 ===================== -->
+  <section class="opcao" id="opcao-2">
+    <div class="opcao-cab"><span class="opcao-num">2</span><h2>Divisórias de fichário</h2></div>
+    <p class="resumo">Cada seção é uma <strong>aba de pasta de arquivo</strong>, numerada como divisória de fichário (01 Arara, 02 Grade…). As abas se sobrepõem em tons de papel, e a ativa vem para a frente e se emenda na folha onde fica o conteúdo. A coleção vira um arquivo de fichas.</p>
+    <div class="telas">
+      <div class="tela-celular"><span class="tela-rotulo">Celular</span><div class="celular" data-opcao="2" data-modo="celular"></div></div>
+      <div class="tela-computador"><span class="tela-rotulo">Computador</span><div class="computador" data-opcao="2" data-modo="computador"></div></div>
+    </div>
+    <div class="notas">
+      <div><h3>Referências</h3><ul><li>Mosby's Files (Tubik Studio): navegação toda em pastas de arquivo, só com CSS</li><li>Divisórias de fichário escolar e pasta suspensa</li></ul></div>
+      <div><h3>Bom</h3><ul><li>Combina com a etiqueta costurada e a ficha técnica da página da camisa</li><li>Deixa claro onde você está: a aba ativa é parte da página</li></ul></div>
+      <div><h3>Atenção</h3><ul><li>Puxa a cara para "arquivo de escritório", menos para a loja de bairro</li><li>No celular as abas ficam no topo, longe do polegar</li></ul></div>
+      <div><h3>Esforço</h3><ul><li>Médio. O conteúdo de cada página passa a ficar dentro de uma "folha"</li></ul></div>
+    </div>
+  </section>
+
+  <!-- ===================== 3 ===================== -->
+  <section class="opcao" id="opcao-3">
+    <div class="opcao-cab"><span class="opcao-num">3</span><h2>Plaquinhas penduradas</h2></div>
+    <p class="resumo">As seções viram <strong>plaquinhas pintadas penduradas</strong> por dois fios numa barra de metal, a mesma da arara, como as placas de seção de uma loja de bairro. A da seção atual fica vermelha, desce um pouco e balança ao ser escolhida.</p>
+    <div class="telas">
+      <div class="tela-celular"><span class="tela-rotulo">Celular</span><div class="celular" data-opcao="3" data-modo="celular"></div></div>
+      <div class="tela-computador"><span class="tela-rotulo">Computador</span><div class="computador" data-opcao="3" data-modo="computador"></div></div>
+    </div>
+    <div class="notas">
+      <div><h3>Referências</h3><ul><li>Placas de seção penduradas em lojas e mercados</li><li>Abridores de letras de Pernambuco e o Shopping Varal de São Luís (já em <code>docs/referencias.md</code>)</li></ul></div>
+      <div><h3>Bom</h3><ul><li>É a mais original e a mais ligada à arara: a navegação vira parte da loja</li><li>Reaproveita a placa pintada e a barra que o site já tem</li></ul></div>
+      <div><h3>Atenção</h3><ul><li>Menos cara de app. É mais cara de site com personalidade</li><li>Cinco placas no celular ficam apertadas abaixo de uns 340 px</li></ul></div>
+      <div><h3>Esforço</h3><ul><li>Pequeno. CSS, sem ícones novos</li></ul></div>
+    </div>
+  </section>
+
+  <div class="leitura">
+    <h2>Minha leitura</h2>
+    <p>Se a meta é <strong>cara de app</strong>, a <strong>1</strong> é a que entrega, ainda mais agora que o site instala na tela inicial. A <strong>3</strong> é a que mais combina com a Arara do Brasil e é a mais original, mas fica com cara de site.</p>
+    <p>Dá para misturar: barra de app embaixo no celular (1) e plaquinhas penduradas no topo do computador (3), ou a barra da 1 com a seção ativa marcada por uma plaquinha vermelha em vez da bolha. É só me dizer.</p>
+  </div>
+
+  <div class="fontes">
+    <strong>Fontes consultadas</strong>
+    <ul>
+      <li><a href="https://www.uxpin.com/studio/blog/mobile-navigation-examples/">UXPin: Mobile Navigation Design (2026)</a></li>
+      <li><a href="https://babich.biz/blog/bottom-tab-bar-design/">Nick Babich: Bottom Tab Bar Design Best Practices</a></li>
+      <li><a href="https://ixd.prattsi.org/2026/09/design-critique-letterboxd-ios-app/">Pratt IxD: Design Critique, Letterboxd (iOS)</a></li>
+      <li><a href="https://tubikstudio.com/works/mosbyfiles">Tubik Studio: Mosby's Files</a></li>
+      <li><a href="https://phoenix-ux.notion.site/Tabs-56da75b7ea5340d9b29b072cd0fb93fc">Phoenix UX: Tabs</a></li>
+      <li><a href="https://revistapesquisa.fapesp.br/abridores-de-letras-inserem-sotaque-proprio-no-espaco-publico/">Revista Pesquisa Fapesp: Abridores de letras</a></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  const SECOES = [
+    { id: 'arara', nome: 'Arara' },
+    { id: 'grade', nome: 'Grade' },
+    { id: 'mapa', nome: 'Mapa' },
+    { id: 'numeros', nome: 'Números' },
+    { id: 'desejos', nome: 'Desejos' },
+  ];
+  const FOTOS = [
+    ['sao-paulo-2018-titular', 'São Paulo'], ['atletico-mineiro-2022-titular', 'Atlético-MG'],
+    ['cruzeiro-2024-reserva', 'Cruzeiro'], ['vasco-2025-titular', 'Vasco'],
+    ['santos-2025-reserva', 'Santos'], ['sao-paulo-2019-reserva', 'São Paulo'],
+  ];
+  const foto = (n) => `<img src="fotos-nav/${n}.webp" alt="" loading="lazy">`;
+
+  // Ícones em traço, no vocabulário da arara
+  const ICONES = {
+    arara: '<path d="M10 6.2a2 2 0 1 1 2.9 1.8c-.6.3-.9.8-.9 1.4V10"/><path class="preench" d="M12 10 3.6 16.6a.9.9 0 0 0 .6 1.6h15.6a.9.9 0 0 0 .6-1.6Z"/>',
+    grade: '<rect class="preench" x="4" y="4" width="7" height="7" rx="1.5"/><rect class="preench" x="13" y="4" width="7" height="7" rx="1.5"/><rect class="preench" x="4" y="13" width="7" height="7" rx="1.5"/><rect class="preench" x="13" y="13" width="7" height="7" rx="1.5"/>',
+    mapa: '<path class="preench" d="M12 21s-6.5-5.7-6.5-11a6.5 6.5 0 0 1 13 0c0 5.3-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>',
+    numeros: '<rect class="preench" x="3" y="5" width="18" height="14" rx="2.5"/><path d="M12 5v14M7.5 10v4M15.5 10h2v2h-2v2h2"/>',
+    desejos: '<path class="preench" d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1 1 0 0 1 0 1.4l-7.3 7.3a1 1 0 0 1-1.4 0Z"/><circle cx="8" cy="8" r="1.6"/>',
+  };
+  const icone = (id) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES[id]}</svg>`;
+
+  // 0 = vazio, 1 e 2 = tons do mapa de quadradinhos
+  const MAPA = '00100000 01110100 11111110 01111111 00111110 00011120 00001221 00000110';
+  function conteudo(secao, modo) {
+    const qtd = modo === 'celular' ? 3 : 5;
+    switch (secao) {
+      case 'arara': return `
+        <h1 class="m-titulo">Armário Digital</h1><p class="m-sub">32 camisas · 9 estados · 12 países</p>
+        <div class="m-placa">Sudeste</div>
+        <div class="m-arara"><div class="m-barra"></div><div class="m-cabides">
+          ${FOTOS.slice(0, qtd + 1).map(([n, c]) => `<div class="m-cabide"><div class="m-gancho"></div>${foto(n)}<span class="m-etiqueta">${c}</span></div>`).join('')}
+        </div></div>
+        <div class="m-placa" style="margin-top:26px;transform:rotate(1deg)">Sul</div>
+        <div class="m-arara"><div class="m-barra"></div><div class="m-cabides">
+          ${FOTOS.slice(2, 2 + qtd).map(([n, c]) => `<div class="m-cabide"><div class="m-gancho"></div>${foto(n)}<span class="m-etiqueta">${c}</span></div>`).join('')}
+        </div></div>`;
+      case 'grade': return `
+        <h1 class="m-titulo">Grade</h1><p class="m-sub">Todas as camisas, com busca e filtros</p>
+        <div class="m-grade">${FOTOS.concat(FOTOS).slice(0, modo === 'celular' ? 6 : 8).map(([n]) => `<div>${foto(n)}</div>`).join('')}</div>`;
+      case 'mapa': return `
+        <h1 class="m-titulo">Mapa</h1><p class="m-sub">De onde vem cada camisa</p>
+        <div class="m-mapa">${MAPA.replace(/ /g, '').split('').map((c, i) => `<i class="${c === '0' ? 'v' : c === '2' ? 'c2' : i % 3 === 0 ? 'c1' : ''}"></i>`).join('')}</div>`;
+      case 'numeros': return `
+        <h1 class="m-titulo">Números</h1><p class="m-sub">A coleção em placar</p>
+        <div class="m-numeros"><div><strong>32</strong><span>camisas</span></div><div><strong>9</strong><span>estados</span></div><div><strong>12</strong><span>países</span></div><div><strong>6</strong><span>do São Paulo</span></div></div>`;
+      case 'desejos': return `
+        <h1 class="m-titulo">Desejos</h1><p class="m-sub">Os cabides que faltam preencher</p>
+        <div class="m-arara"><div class="m-barra"></div><div class="m-cabides">
+          ${['Bahia', 'Fluminense', 'Santa Cruz', 'Flamengo', 'Sport'].slice(0, qtd).map((c) => `<div class="m-cabide"><div class="m-gancho"></div><div class="m-vazio"></div><span class="m-etiqueta"><span class="m-procura">Procura-se</span>${c}</span></div>`).join('')}
+        </div></div>`;
+    }
+  }
+
+  // ---------- Montagem de cada opção ----------
+  function opcao1(modo) {
+    if (modo === 'celular') return `
+      <div class="rolagem o1"><div class="o1-topo"><a class="o1-marca" href="#">Armário Digital</a><button class="o1-tema" type="button" aria-label="Tema">◐</button></div><div class="miolo" data-conteudo></div></div>
+      <nav class="o1-baixo" aria-label="Seções">${SECOES.map((s) => `<button class="o1-item" data-secao="${s.id}"><span class="o1-icone">${icone(s.id)}</span>${s.nome}</button>`).join('')}</nav>`;
+    return `
+      <div class="rolagem o1"><div class="o1-cima"><a class="o1-marca" href="#">Armário Digital</a>
+        <nav class="o1-seg" aria-label="Seções"><span class="o1-marcador"></span>${SECOES.map((s) => `<button class="o1-item" data-secao="${s.id}">${icone(s.id)}${s.nome}</button>`).join('')}</nav>
+        <button class="o1-tema" type="button" aria-label="Tema">◐</button></div><div class="miolo" data-conteudo></div></div>`;
+  }
+  function opcao2(modo) {
+    return `
+      <div class="rolagem o2"><div class="o2-topo"><a class="o2-marca" href="#">Armário Digital</a><button class="o2-tema" type="button">◐ Auto</button></div>
+        <nav class="o2-abas" aria-label="Seções">${SECOES.map((s, i) => `<button class="o2-aba" data-secao="${s.id}"><small>0${i + 1}</small><span>${s.nome}</span></button>`).join('')}</nav>
+        <div class="o2-folha"><div class="miolo" data-conteudo></div></div><div style="height:24px"></div></div>`;
+  }
+  function opcao3(modo) {
+    return `
+      <div class="rolagem o3"><div class="o3-topo"><div class="o3-linha"><a class="o3-marca" href="#">Armário Digital</a><button class="o3-tema" type="button">◐ Auto</button></div>
+        <nav class="o3-varal" aria-label="Seções"><div class="o3-placas">${SECOES.map((s) => `<button class="o3-placa" data-secao="${s.id}">${s.nome}</button>`).join('')}</div></nav></div>
+        <div class="miolo" data-conteudo></div></div>`;
+  }
+  const MONTAR = { 1: opcao1, 2: opcao2, 3: opcao3 };
+
+  function mover1(moldura) { // marcador deslizante do controle segmentado
+    const seg = moldura.querySelector('.o1-seg');
+    if (!seg) return;
+    const ativo = seg.querySelector('[aria-current="page"]');
+    const marcador = seg.querySelector('.o1-marcador');
+    marcador.style.width = ativo.offsetWidth + 'px';
+    marcador.style.transform = `translateX(${ativo.offsetLeft}px)`;
+  }
+
+  function escolher(moldura, secao, animar) {
+    moldura.querySelectorAll('[data-secao]').forEach((b) => {
+      const ativo = b.dataset.secao === secao;
+      if (ativo) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      if (ativo && animar && b.classList.contains('o3-placa')) {
+        b.classList.remove('balancando'); void b.offsetWidth; b.classList.add('balancando');
+      }
+      if (ativo && animar) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    });
+    moldura.querySelector('[data-conteudo]').innerHTML = conteudo(secao, moldura.dataset.modo);
+    moldura.querySelector('.rolagem').scrollTop = 0;
+    mover1(moldura);
+  }
+
+  document.querySelectorAll('[data-opcao]').forEach((moldura) => {
+    moldura.innerHTML = MONTAR[moldura.dataset.opcao](moldura.dataset.modo);
+    moldura.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-secao]');
+      if (b) { escolher(moldura, b.dataset.secao, true); return; }
+      if (e.target.closest('a')) e.preventDefault();
+      if (e.target.closest('.o1-tema, .o2-tema, .o3-tema')) trocarTema();
+    });
+    escolher(moldura, 'arara', false);
+  });
+  document.fonts.ready.then(() => document.querySelectorAll('[data-opcao]').forEach(mover1));
+  window.addEventListener('resize', () => document.querySelectorAll('[data-opcao]').forEach(mover1));
+
+  // ---------- Tema da página ----------
+  const TEMAS = [['auto', 'Auto'], ['light', 'Claro'], ['dark', 'Escuro']];
+  let tema = 'auto';
+  const botaoTema = document.getElementById('tema-doc');
+  function trocarTema() {
+    const i = TEMAS.findIndex(([v]) => v === tema);
+    tema = TEMAS[(i + 1) % TEMAS.length][0];
+    if (tema === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = tema;
+    const rotulo = TEMAS.find(([v]) => v === tema)[1];
+    botaoTema.textContent = '◐ ' + rotulo;
+    document.querySelectorAll('.o2-tema, .o3-tema').forEach((b) => (b.textContent = '◐ ' + rotulo));
+  }
+  botaoTema.addEventListener('click', trocarTema);
+</script>
+</body>
+</html>

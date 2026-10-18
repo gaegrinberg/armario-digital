@@ -12,6 +12,8 @@ export default defineConfig({
   site: `https://${dono.toLowerCase()}.github.io`,
   base: naRaiz ? '/' : `/${repo}`,
   trailingSlash: 'always',
+  // A barra de ferramentas do Astro (só no npm run dev) ficava em cima da barra de seções
+  devToolbar: { enabled: false },
   // Lido em src/config.ts, para o CMS gravar no repositório certo
   vite: { define: { 'import.meta.env.REPOSITORIO': JSON.stringify(repositorio) } },
 });
