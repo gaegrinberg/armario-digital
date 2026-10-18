@@ -20,6 +20,11 @@ const exemplos = (await todasAsCamisas()).some((c) => c.tags.includes('exemplo')
   <title>{titulo ? `${titulo} · ${CONFIG.titulo}` : CONFIG.titulo}</title>
   <meta name="description" content={descricao} />
   <link rel="icon" href={link('favicon.svg')} type="image/svg+xml" />
+  <!-- Instalar como app: manifesto (Android e computador) e ícone do iPhone -->
+  <link rel="manifest" href={link('manifest.webmanifest')} />
+  <link rel="apple-touch-icon" href={link('apple-touch-icon.png')} />
+  <meta name="apple-mobile-web-app-title" content="Armário" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#EDEBE6" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#121315" media="(prefers-color-scheme: dark)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -51,6 +56,7 @@ const exemplos = (await todasAsCamisas()).some((c) => c.tags.includes('exemplo')
     <footer class="rodape">
       {exemplos && <p>Algumas camisas são exemplos com dados fictícios: clubes reais, mas fabricantes, patrocinadores e histórias inventados.</p>}
       <p>Fotos do acervo pessoal. Silhuetas genéricas, sem escudos ou marcas.</p>
+      <p><a class="link-admin" href={link('admin/')} rel="nofollow">Cadastrar ou editar camisas</a></p>
     </footer>
   </div>
   <script>
