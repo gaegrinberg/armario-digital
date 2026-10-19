@@ -4,4 +4,5 @@ pais: Brasil
 uf: RS
 liga: Brasileirão Série A
 cidade: Porto Alegre
-coordenadas: { lat: -30.0346, lon: -51.2177 }
+estadio: Arena do Grêmio
+coordenadas: '{"type":"Point","coordinates":[-51.1944,-29.97344]}'

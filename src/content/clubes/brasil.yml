@@ -3,4 +3,5 @@ equipe: selecao
 pais: Brasil
 liga: CONMEBOL
 cidade: Brasília
-coordenadas: { lat: -15.7939, lon: -47.8828 }
+estadio: Mané Garrincha
+coordenadas: '{"type":"Point","coordinates":[-47.89916,-15.7835]}'

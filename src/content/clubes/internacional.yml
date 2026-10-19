@@ -4,4 +4,5 @@ pais: Brasil
 uf: RS
 liga: Brasileirão Série A
 cidade: Porto Alegre
-coordenadas: { lat: -30.0346, lon: -51.2177 }
+estadio: Beira-Rio
+coordenadas: '{"type":"Point","coordinates":[-51.23611,-30.06556]}'

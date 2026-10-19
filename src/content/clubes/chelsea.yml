@@ -3,4 +3,5 @@ equipe: clube
 pais: Inglaterra
 liga: Premier League
 cidade: Londres
-coordenadas: { lat: 51.5074, lon: -0.1278 }
+estadio: Stamford Bridge
+coordenadas: '{"type":"Point","coordinates":[-0.19111,51.48167]}'

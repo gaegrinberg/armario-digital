@@ -3,4 +3,5 @@ equipe: selecao
 pais: Senegal
 liga: CAF
 cidade: Dacar
-coordenadas: { lat: 14.7167, lon: -17.4677 }
+estadio: Estádio Léopold Sédar Senghor
+coordenadas: '{"type":"Point","coordinates":[-17.45201,14.74669]}'

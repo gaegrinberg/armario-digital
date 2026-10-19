@@ -3,4 +3,5 @@ equipe: selecao
 pais: Coreia do Sul
 liga: AFC
 cidade: Seul
-coordenadas: { lat: 37.5665, lon: 126.978 }
+estadio: Estádio da Copa do Mundo de Seul
+coordenadas: '{"type":"Point","coordinates":[126.89736,37.56822]}'

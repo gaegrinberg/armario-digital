@@ -1,27 +1,27 @@
 ---
-// Mapa-múndi com um marcador por cidade (vários clubes na mesma cidade dividem o marcador).
+// Mapa-múndi com um marcador por estádio (clubes que dividem o estádio dividem o marcador).
 // O fundo vem do OpenStreetMap, pelo Leaflet. A lista de cidades abaixo do mapa funciona
 // sem JavaScript e é de onde o mapa tira os marcadores e o conteúdo de cada balão.
 import Base from '../layouts/Base.astro';
 import FotoCamisa from '../components/FotoCamisa.astro';
 import { CONFIG } from '../config';
 import { UFS } from '../opcoes';
-import { lugarId, porTemporada, tipoCurto, todasAsCamisas, type Camisa } from '../lib/camisas';
+import { lugarId, pontoId, porTemporada, tipoCurto, todasAsCamisas, type Camisa } from '../lib/camisas';
 import { link } from '../lib/link';
 
-type Lugar = { id: string; cidade: string; pais: string; uf?: keyof typeof UFS; lat: number; lon: number; camisas: Camisa[] };
+type Lugar = { id: string; cidadeId: string; estadio?: string; cidade: string; pais: string; uf?: keyof typeof UFS; lat: number; lon: number; camisas: Camisa[] };
 
 const camisas = [...(await todasAsCamisas())].sort(porTemporada);
 const porLugar = new Map<string, Lugar>();
 const semCoordenadas = new Set<string>();
 for (const c of camisas) {
-  const { coordenadas, cidade, pais, uf } = c.clube;
+  const { coordenadas, estadio, cidade, pais, uf } = c.clube;
   if (!coordenadas) { semCoordenadas.add(c.clube.nome); continue; }
-  const id = lugarId(c.clube);
-  if (!porLugar.has(id)) porLugar.set(id, { id, cidade, pais, uf, lat: coordenadas.lat, lon: coordenadas.lon, camisas: [] });
+  const id = pontoId(c.clube);
+  if (!porLugar.has(id)) porLugar.set(id, { id, cidadeId: lugarId(c.clube), estadio, cidade, pais, uf, lat: coordenadas.lat, lon: coordenadas.lon, camisas: [] });
   porLugar.get(id)!.camisas.push(c);
 }
-// Na cidade do time do coração, ele vem primeiro
+// No estádio do time do coração, ele vem primeiro
 const doCoracao = (c: Camisa) => Number(c.clubeId !== CONFIG.timeDoCoracao);
 for (const l of porLugar.values()) l.camisas.sort((a, b) => doCoracao(a) - doCoracao(b) || porTemporada(a, b));
 const lugares = [...porLugar.values()].sort(
@@ -37,8 +37,7 @@ const legenda = (l: Lugar) => {
 <Base titulo="Mapa" atual="mapa" descricao="De onde vem cada camisa da coleção, com zoom até a cidade.">
   <h1 class="titulo-pagina">De onde vêm</h1>
   <p class="subtitulo-pagina">
-    {plural(lugares.length, 'cidade', 'cidades')} em {plural(new Set(lugares.map((l) => l.pais)).size, 'país', 'países')}.
-    Toque num marcador para ver as camisas da cidade.
+    {plural(lugares.length, 'estádio', 'estádios')} em {plural(new Set(lugares.map((l) => l.cidadeId)).size, 'cidade', 'cidades')} de {plural(new Set(lugares.map((l) => l.pais)).size, 'país', 'países')}. Toque num marcador para ver as camisas de lá.
   </p>
 
   <div class="enquadrar" role="group" aria-label="Enquadrar o mapa" hidden>
@@ -47,17 +46,17 @@ const legenda = (l: Lugar) => {
   </div>
   <div class="mapa" id="mapa" hidden></div>
 
-  <h2 class="placa-pintada titulo-lugares">Cidades</h2>
+  <h2 class="placa-pintada titulo-lugares">Estádios</h2>
   <ol class="lugares">
     {lugares.map((l) => (
-      <li class="lugar" id={`lugar-${l.id}`} data-lugar={l.id} data-lat={l.lat} data-lon={l.lon} data-n={l.camisas.length}
+      <li class="lugar" id={`lugar-${l.id}`} data-lugar={l.id} data-cidade={l.cidadeId} data-lat={l.lat} data-lon={l.lon} data-n={l.camisas.length}
           data-coracao={l.camisas.some((c) => c.clubeId === CONFIG.timeDoCoracao) ? '' : undefined}>
         <div class="lugar-topo">
           <div>
-            <h3>{l.cidade}</h3>
-            <p>{l.uf ? `${UFS[l.uf].nome}, ` : ''}{l.pais} · {legenda(l)}</p>
+            <h3>{l.estadio ?? l.cidade}</h3>
+            <p>{l.estadio ? `${l.cidade}, ` : ''}{l.uf ? `${UFS[l.uf].nome}, ` : ''}{l.pais} · {legenda(l)}</p>
           </div>
-          <a class="pilula ver" href={`?cidade=${l.id}`} data-ver={l.id} hidden>Ver no mapa</a>
+          <a class="pilula ver" href={`?lugar=${l.id}`} data-ver={l.id} hidden>Ver no mapa</a>
         </div>
         <ul class="lugar-camisas">
           {l.camisas.map((c) => (
@@ -100,7 +99,7 @@ const legenda = (l: Lugar) => {
   .mapa :global(.leaflet-control-attribution a) { color: var(--texto); }
   .mapa :global(.leaflet-bar a) { background: var(--superficie); color: var(--texto); border-color: var(--borda); width: 36px; height: 36px; line-height: 36px; }
 
-  /* Marcador: uma placa redonda com o número de camisas da cidade; a do time do coração em destaque */
+  /* Marcador: uma placa redonda com o número de camisas do estádio; a do time do coração em destaque */
   .mapa :global(.marcador) {
     display: grid; place-items: center; width: 100%; height: 100%;
     background: var(--placa-pintada); color: var(--tinta);
@@ -151,6 +150,7 @@ const legenda = (l: Lugar) => {
   import 'leaflet/dist/leaflet.css';
 
   const ZOOM_CIDADE = 12;
+  const ZOOM_ESTADIO = 15;
   const BRASIL = L.latLngBounds([-33.8, -73.9], [5.3, -34.8]);
 
   const caixa = document.getElementById('mapa')!;
@@ -173,15 +173,15 @@ const legenda = (l: Lugar) => {
     return L.divIcon({ className: '', html: `<span class="marcador ${classe}">${n}</span>`, iconSize: [tamanho, tamanho] });
   };
 
-  // Um marcador por cidade da lista; o balão leva uma cópia da lista de camisas
-  type Lugar = { id: string; n: number; marcador: L.Marker };
+  // Um marcador por estádio da lista; o balão leva uma cópia da lista de camisas
+  type Lugar = { id: string; cidade: string; n: number; marcador: L.Marker };
   const lugares: Lugar[] = [];
   for (const item of document.querySelectorAll<HTMLElement>('[data-lugar]')) {
     const n = Number(item.dataset.n);
-    const cidade = item.querySelector('h3')!.textContent!;
+    const nome = item.querySelector('h3')!.textContent!;
     const marcador = L.marker([Number(item.dataset.lat), Number(item.dataset.lon)], {
-      title: `${cidade}: ${n}`,
-      alt: cidade,
+      title: `${nome}: ${n}`,
+      alt: nome,
       riseOnHover: true,
       icon: icone(n, item.dataset.coracao != null ? 'coracao' : ''),
     });
@@ -189,14 +189,14 @@ const legenda = (l: Lugar) => {
     balao.className = 'balao';
     balao.append(item.querySelector('h3')!.cloneNode(true), item.querySelector('.lugar-topo p')!.cloneNode(true), item.querySelector('.lugar-camisas')!.cloneNode(true));
     marcador.bindPopup(balao, { maxWidth: 280, minWidth: 220, autoPanPaddingTopLeft: L.point(56, 16), autoPanPaddingBottomRight: L.point(16, 16) });
-    marcador.on('popupopen', () => history.replaceState(null, '', `?cidade=${item.dataset.lugar}`));
+    marcador.on('popupopen', () => history.replaceState(null, '', `?lugar=${item.dataset.lugar}`));
     marcador.on('popupclose', () => history.replaceState(null, '', location.pathname));
-    lugares.push({ id: item.dataset.lugar!, n, marcador });
+    lugares.push({ id: item.dataset.lugar!, cidade: item.dataset.cidade!, n, marcador });
   }
   const marcadores = new Map(lugares.map((l) => [l.id, l.marcador]));
 
-  // Cidades que se encostam no zoom atual (o Sudeste inteiro, visto do mundo) viram um
-  // marcador só, com a soma das camisas. Tocar nele aproxima até separar as cidades.
+  // Estádios que se encostam no zoom atual (o Sudeste inteiro, visto do mundo) viram um
+  // marcador só, com a soma das camisas. Tocar nele aproxima até separar os estádios.
   const DISTANCIA = 34;
   const camada = L.layerGroup().addTo(mapa);
   const agrupar = () => {
@@ -213,12 +213,12 @@ const legenda = (l: Lugar) => {
       const limites = L.latLngBounds(membros.map((m) => m.marcador.getLatLng()));
       const n = membros.reduce((soma, m) => soma + m.n, 0);
       const grupo = L.marker(limites.getCenter(), {
-        title: `${membros.length} cidades: ${n}. Toque para aproximar`,
-        alt: `${membros.length} cidades`,
+        title: `${membros.length} estádios: ${n}. Toque para aproximar`,
+        alt: `${membros.length} estádios`,
         riseOnHover: true,
         icon: icone(n, 'grupo'),
       });
-      grupo.on('click', () => mapa.flyToBounds(limites, { padding: [60, 60], maxZoom: ZOOM_CIDADE, duration: 0.8 }));
+      grupo.on('click', () => mapa.flyToBounds(limites, { padding: [60, 60], maxZoom: ZOOM_ESTADIO, duration: 0.8 }));
       camada.addLayer(grupo);
     }
   };
@@ -239,9 +239,9 @@ const legenda = (l: Lugar) => {
     if (!m) return false;
     if (animar) {
       mapa.once('moveend', () => m.openPopup());
-      mapa.flyTo(m.getLatLng(), ZOOM_CIDADE, { duration: 1.2 });
+      mapa.flyTo(m.getLatLng(), ZOOM_ESTADIO, { duration: 1.2 });
     } else {
-      mapa.setView(m.getLatLng(), ZOOM_CIDADE);
+      mapa.setView(m.getLatLng(), ZOOM_ESTADIO);
       m.openPopup();
     }
     return true;
@@ -257,7 +257,12 @@ const legenda = (l: Lugar) => {
     });
   }
 
-  // Endereço com ?cidade=… (vindo da página da camisa) já abre na cidade
-  const pedida = new URLSearchParams(location.search).get('cidade');
-  if (!pedida || !irPara(pedida, false)) mapa.fitBounds(todos, { padding: [24, 24], maxZoom: 5 });
+  // ?lugar=… (vindo da página da camisa) abre no estádio. ?cidade=… (vindo dos números)
+  // enquadra os estádios da cidade; se for um só, abre o balão dele.
+  const busca = new URLSearchParams(location.search);
+  const daCidade = lugares.filter((l) => l.cidade === busca.get('cidade'));
+  const pedida = busca.get('lugar') ?? (daCidade.length === 1 ? daCidade[0].id : null);
+  if (pedida && irPara(pedida, false)) { /* já abriu */ }
+  else if (daCidade.length) mapa.fitBounds(L.latLngBounds(daCidade.map((l) => l.marcador.getLatLng())), { padding: [60, 60], maxZoom: ZOOM_CIDADE });
+  else mapa.fitBounds(todos, { padding: [24, 24], maxZoom: 5 });
 </script>

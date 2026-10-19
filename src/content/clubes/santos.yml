@@ -4,4 +4,5 @@ pais: Brasil
 uf: SP
 liga: Brasileirão Série A
 cidade: Santos
-coordenadas: { lat: -23.9608, lon: -46.3336 }
+estadio: Vila Belmiro
+coordenadas: '{"type":"Point","coordinates":[-46.33889,-23.95111]}'

@@ -7,7 +7,7 @@ import Base from '../../layouts/Base.astro';
 import Cabide from '../../components/Cabide.astro';
 import FotoCamisa from '../../components/FotoCamisa.astro';
 import { CORES, UFS } from '../../opcoes';
-import { formatarData, lugarId, relacionadas, rotulo, tipoCurto, todasAsCamisas, type Camisa, type Foto } from '../../lib/camisas';
+import { formatarData, lugarId, pontoId, relacionadas, rotulo, tipoCurto, todasAsCamisas, type Camisa, type Foto } from '../../lib/camisas';
 import { link } from '../../lib/link';
 
 export async function getStaticPaths() {
@@ -38,6 +38,7 @@ const linhas: Linha[] = [
   { rotulo: 'País', valor: c.clube.pais, href: filtro('pais', c.clube.pais) },
   { rotulo: 'Estado', valor: c.clube.uf && UFS[c.clube.uf].nome },
   { rotulo: 'Cidade', valor: c.clube.cidade, href: c.clube.coordenadas && link(`mapa/?cidade=${lugarId(c.clube)}`) },
+  { rotulo: 'Estádio', valor: c.clube.estadio, href: c.clube.coordenadas && link(`mapa/?lugar=${pontoId(c.clube)}`) },
   { rotulo: 'Liga', valor: c.clube.liga, href: c.clube.liga && filtro('liga', c.clube.liga) },
   { rotulo: 'Temporada', valor: c.temporada },
   { rotulo: 'Tipo', valor: rotulo.tipo(c), href: filtro('tipo', c.tipo) },

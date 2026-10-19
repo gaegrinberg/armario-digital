@@ -3,4 +3,5 @@ equipe: clube
 pais: Brasil
 uf: SP
 cidade: São Paulo
-coordenadas: { lat: -23.5505, lon: -46.6333 }
+estadio: Rua Javari
+coordenadas: '{"type":"Point","coordinates":[-46.60444,-23.55333]}'

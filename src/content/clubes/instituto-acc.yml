@@ -4,6 +4,5 @@ pais: Argentina
 uf: ''
 liga: AFA
 cidade: Córdoba
-coordenadas:
-  lat: -31.38370206031144
-  lon: -64.1805413323591
+estadio: Estádio Juan Domingo Perón
+coordenadas: '{"type":"Point","coordinates":[-64.180541,-31.383702]}'

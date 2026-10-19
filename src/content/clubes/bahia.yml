@@ -4,4 +4,5 @@ pais: Brasil
 uf: BA
 liga: Brasileirão Série A
 cidade: Salvador
-coordenadas: { lat: -12.9777, lon: -38.5016 }
+estadio: Arena Fonte Nova
+coordenadas: '{"type":"Point","coordinates":[-38.50425,-12.97882]}'

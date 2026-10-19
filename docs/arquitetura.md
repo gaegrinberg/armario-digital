@@ -31,7 +31,8 @@ As camisas apontam para um clube em vez de repetir país, UF e liga em cada regi
 | `uf` | uma das 27 siglas | só para clube brasileiro | O build falha se um clube do Brasil ficar sem UF. |
 | `liga` | texto | não | Liga ou confederação, como "Brasileirão Série A" ou "CONMEBOL". |
 | `cidade` | texto | sim | Cidade do clube. Para seleção, a capital do país. |
-| `coordenadas` | latitude e longitude | não | Da cidade. Prepara o mapa-múndi da Etapa 5 e eu preencho na importação. Dá para deixar vazio no celular e completar depois. |
+| `estadio` | texto | não | Nome curto do estádio, como aparece no mapa. Acrescentado em 18/10/2026. |
+| `coordenadas` | ponto no mapa | não | Do estádio (até 18/10/2026, era da cidade). No CMS, campo de mapa com busca por nome ou endereço; grava GeoJSON em texto. Dá para deixar vazio no celular e completar depois. |
 
 **Em qual arara cada camisa fica:**
 

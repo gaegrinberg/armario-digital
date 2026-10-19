@@ -111,13 +111,10 @@ export async function GET() {
           { name: 'uf', label: 'Estado (UF)', widget: 'select', options: Object.entries(UFS).map(([value, u]) => ({ label: `${value} · ${u.nome}`, value })), ...opcional, hint: 'Obrigatório para clube brasileiro. Define a arara da região.' },
           { name: 'liga', label: 'Liga ou confederação', widget: 'string', ...opcional },
           { name: 'cidade', label: 'Cidade', widget: 'string', hint: 'Para seleção, a capital do país.' },
+          { name: 'estadio', label: 'Estádio', widget: 'string', ...opcional, hint: 'Nome curto, como aparece no mapa. Ex.: Morumbi, Maracanã.' },
           {
-            name: 'coordenadas', label: 'Coordenadas da cidade', widget: 'object', ...opcional, collapsed: true,
-            hint: 'Para o mapa futuro. Pode deixar vazio.',
-            fields: [
-              { name: 'lat', label: 'Latitude', widget: 'number', value_type: 'float', ...opcional },
-              { name: 'lon', label: 'Longitude', widget: 'number', value_type: 'float', ...opcional },
-            ],
+            name: 'coordenadas', label: 'Local no mapa', widget: 'map', type: 'Point', decimals: 5, ...opcional,
+            hint: 'Busque o estádio pelo nome ou endereço na caixa do mapa, ou clique no ponto. Para seleção, um estádio da capital. Sem ponto, o clube fica fora do mapa.',
           },
         ],
       },

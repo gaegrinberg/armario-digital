@@ -3,4 +3,5 @@ equipe: selecao
 pais: Índia
 liga: ICC
 cidade: Nova Délhi
-coordenadas: { lat: 28.6139, lon: 77.209 }
+estadio: Estádio Arun Jaitley
+coordenadas: '{"type":"Point","coordinates":[77.24306,28.63778]}'

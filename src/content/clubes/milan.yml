@@ -3,4 +3,5 @@ equipe: clube
 pais: Itália
 liga: Serie A (Itália)
 cidade: Milão
-coordenadas: { lat: 45.4642, lon: 9.19 }
+estadio: San Siro
+coordenadas: '{"type":"Point","coordinates":[9.12389,45.47806]}'

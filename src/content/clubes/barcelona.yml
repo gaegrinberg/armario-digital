@@ -3,4 +3,5 @@ equipe: clube
 pais: Espanha
 liga: La Liga
 cidade: Barcelona
-coordenadas: { lat: 41.3874, lon: 2.1686 }
+estadio: Camp Nou
+coordenadas: '{"type":"Point","coordinates":[2.1228,41.3808]}'

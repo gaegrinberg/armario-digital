@@ -3,4 +3,5 @@ equipe: selecao
 pais: Uruguai
 liga: CONMEBOL
 cidade: Montevidéu
-coordenadas: { lat: -34.9011, lon: -56.1645 }
+estadio: Estádio Centenário
+coordenadas: '{"type":"Point","coordinates":[-56.15268,-34.89454]}'

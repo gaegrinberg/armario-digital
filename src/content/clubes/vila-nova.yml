@@ -3,4 +3,5 @@ equipe: clube
 pais: Brasil
 uf: GO
 cidade: Goiânia
-coordenadas: { lat: -16.6869, lon: -49.2648 }
+estadio: Onésio Brasileiro Alvarenga
+coordenadas: '{"type":"Point","coordinates":[-49.23773,-16.67356]}'

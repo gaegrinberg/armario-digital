@@ -4,4 +4,5 @@ pais: Brasil
 uf: SP
 liga: Brasileirão Série A
 cidade: São Paulo
-coordenadas: { lat: -23.5505, lon: -46.6333 }
+estadio: Morumbi
+coordenadas: '{"type":"Point","coordinates":[-46.72016,-23.60013]}'

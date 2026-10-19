@@ -3,4 +3,5 @@ equipe: clube
 pais: México
 liga: Liga MX
 cidade: Cidade do México
-coordenadas: { lat: 19.4326, lon: -99.1332 }
+estadio: Estádio Olímpico Universitário
+coordenadas: '{"type":"Point","coordinates":[-99.19222,19.33194]}'

@@ -3,4 +3,5 @@ equipe: clube
 pais: Brasil
 uf: PB
 cidade: João Pessoa
-coordenadas: { lat: -7.1195, lon: -34.845 }
+estadio: Almeidão
+coordenadas: '{"type":"Point","coordinates":[-34.87343,-7.16714]}'

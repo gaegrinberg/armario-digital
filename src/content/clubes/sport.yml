@@ -3,4 +3,5 @@ equipe: clube
 pais: Brasil
 uf: PE
 cidade: Recife
-coordenadas: { lat: -8.0476, lon: -34.877 }
+estadio: Ilha do Retiro
+coordenadas: '{"type":"Point","coordinates":[-34.90278,-8.06278]}'

@@ -3,4 +3,5 @@ equipe: clube
 pais: Brasil
 uf: SE
 cidade: Aracaju
-coordenadas: { lat: -10.9472, lon: -37.0731 }
+estadio: João Hora
+coordenadas: '{"type":"Point","coordinates":[-37.07222,-10.92333]}'

@@ -3,4 +3,5 @@ equipe: selecao
 pais: Azerbaijão
 liga: UEFA
 cidade: Baku
-coordenadas: { lat: 40.4093, lon: 49.8671 }
+estadio: Estádio Olímpico de Baku
+coordenadas: '{"type":"Point","coordinates":[49.91979,40.42977]}'

@@ -74,6 +74,10 @@ Página `/mapa/` (`src/pages/mapa.astro`), com "Mapa" no menu.
 - **Endereço por cidade:** `mapa/?cidade=rio-de-janeiro-brasil` já abre no Rio. Na página da camisa, a cidade da ficha virou link para esse endereço.
 - Para entrar no mapa, o clube precisa ter `coordenadas`. Um clube sem elas aparece numa nota no fim da página.
 
+**Mudança de 18/10/2026: um marcador por estádio.** A pedido do dono, cada clube ganhou o campo `estadio` e as `coordenadas` passaram a ser as do estádio (tiradas da Wikipedia e do OpenStreetMap). Seleções ficam num estádio da capital (Mané Garrincha, Centenário, Léopold Sédar Senghor…). Clubes que dividem o estádio dividem o marcador (Flamengo e Fluminense no Maracanã). A lista abaixo do mapa virou "Estádios", o balão abre com zoom de rua, e `mapa/?lugar=morumbi-sao-paulo-brasil` abre direto no estádio. `mapa/?cidade=…` continua valendo: enquadra os estádios da cidade (ou abre o balão, se houver um só). Na página da camisa, a ficha ganhou a linha "Estádio", com link para o marcador. As relacionadas e os números continuam contando por cidade.
+
+No CMS, a latitude e a longitude deram lugar ao campo de mapa do Sveltia: dá para buscar o estádio pelo nome ou endereço na caixa de busca do mapa (Nominatim, do OpenStreetMap) ou clicar no ponto. O valor fica gravado como GeoJSON em texto (`'{"type":"Point","coordinates":[lon,lat]}'`); o esquema em `src/content.config.ts` lê esse formato e também o antigo, `{ lat, lon }`.
+
 Ajuste no topo de todas as páginas: com cinco botões, o menu quebrava em três linhas no celular. A chave de tema foi para a linha do título.
 
 ## Feito: relacionadas na página da camisa (17/10/2026)

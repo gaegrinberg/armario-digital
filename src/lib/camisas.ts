@@ -236,8 +236,12 @@ export function posicoesNaArara(camisas: Camisa[]) {
 
 // ---------- Lugares (mapa) ----------
 
-// Uma cidade pode ter vários clubes; o mapa agrupa por cidade e país
+// Uma cidade pode ter vários clubes; as relacionadas e os números contam por cidade e país
 export const lugarId = (clube: Camisa['clube']) => slug(`${clube.cidade} ${clube.pais}`);
+
+// O marcador do mapa fica no estádio; clubes que dividem o estádio (Flamengo e Fluminense)
+// dividem o marcador. Sem estádio, o ponto leva o nome da cidade.
+export const pontoId = (clube: Camisa['clube']) => slug(`${clube.estadio ?? ''} ${clube.cidade} ${clube.pais}`);
 
 // ---------- Relacionadas ----------
 

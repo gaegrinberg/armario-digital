@@ -50,10 +50,20 @@ const clubes = defineCollection({
       uf: opcional(escolha(UFS)),
       liga: opcional(texto),
       cidade: texto,
-      // O CMS grava { lat: null, lon: null } quando o campo fica vazio
+      estadio: opcional(texto),
+      // O campo de mapa do CMS grava um GeoJSON em texto ('{"type":"Point","coordinates":[lon,lat]}')
+      // e '' quando fica vazio. O formato antigo, { lat, lon }, continua aceito.
       coordenadas: z.preprocess(
-        (v: any) => (v && v.lat != null && v.lon != null ? v : undefined),
-        z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) }).optional(),
+        (v: any) => {
+          if (typeof v === 'string' && v.trim()) {
+            try { v = JSON.parse(v); } catch { return v; }
+          }
+          if (v?.type === 'Point' && Array.isArray(v.coordinates)) return { lat: v.coordinates[1], lon: v.coordinates[0] };
+          return v && v.lat != null && v.lon != null ? v : undefined;
+        },
+        z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) }, {
+          error: 'marque um ponto no mapa (o GeoJSON não foi entendido)',
+        }).optional(),
       ),
     })
     .refine((c) => !(c.equipe === 'clube' && c.pais === 'Brasil' && !c.uf), {
